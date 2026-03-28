@@ -13,34 +13,49 @@ dependencies:
 
   # --- ICONOGRAFÍA ---
   cupertino_icons: ^1.0.8
-  flutter_svg: ^2.0.10+1      # Indispensable para iconos vectoriales sin pérdida de calidad
+  flutter_svg: ^2.0.10+1      # Para los iconos .svg de la plantilla
 
-  # --- UI & ANIMACIONES (Experiencia de Usuario) ---
-  rive: ^0.13.20              # Motor de animaciones interactivas (State Machines)
-  google_fonts: ^6.2.1        # Gestión dinámica de tipografías modernas
+  # --- UI & ANIMACIONES ---
+  rive: ^0.13.20              # Motor para tus archivos .riv (shapes, check, etc.)
+  google_fonts: ^6.2.1
 
-  # --- NETWORKING & SEGURIDAD (Conexión Laravel) ---
-  dio: ^5.4.0                 # Cliente HTTP robusto con interceptores (estilo Axios)
-  flutter_secure_storage: ^9.0.0 # Almacenamiento cifrado para JWT/Tokens de Laravel
-  connectivity_plus: ^6.0.3   # Para detectar si el usuario tiene internet antes de peticiones
+  # --- NETWORKING & SEGURIDAD ---
+  dio: ^5.4.0
+  flutter_secure_storage: ^9.0.0
+  connectivity_plus: ^6.0.3
 
   # --- STATE MANAGEMENT & ARQUITECTURA ---
-  provider: ^6.1.1            # Inyección de dependencias y gestión de estado simple
-  logger: ^2.4.0              # Logs profesionales para debugear la API en consola
+  provider: ^6.1.1
+  logger: ^2.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # Lints recomendados para mantener Clean Code y SOLID
   flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
 
-  # CONFIGURACIÓN DE ASSETS
-  # Recuerda crear estas carpetas en la raíz de tu proyecto
+  # 1. REGISTRO DE FUENTES (Basado en tu carpeta assets/fonts)
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+
+  # 2. REGISTRO DE ASSETS (Rutas exactas según tu imagen)
+  # Nota: Flutter no es recursivo, hay que declarar cada subcarpeta que contenga archivos.
   assets:
-    - assets/
-    - assets/animations/      # Para tus archivos .riv de Rive
-    - assets/icons/           # Para tus archivos .svg
+    - assets/fonts/
+    - assets/samples/animations/
+    - assets/samples/ui/rive_app/
+    - assets/samples/ui/rive_app/rive/
+    - assets/samples/ui/rive_app/images/
+    - assets/samples/ui/rive_app/images/avatars/
+    - assets/samples/ui/rive_app/images/backgrounds/
+    - assets/samples/ui/rive_app/images/topics/
