@@ -1,10 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-// Usamos 'hide' para evitar que Rive choque con los Widgets de Flutter
 import 'package:rive/rive.dart' hide Image;
-import 'package:provider/provider.dart';
-
-import '../../core/auth_provider.dart';
 import '../../core/assets.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -13,20 +9,14 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Usamos un Stack para encimar el fondo, el desenfoque y el contenido
       body: Stack(
         children: [
-          // 1. Imagen de fondo (Spline)
-          Positioned(
-            width: MediaQuery.of(context).size.width * 1.7,
-            bottom: 200,
-            left: 100,
-            child: Image.asset(AppImages.spline),
-          ),
-
-          // 2. Animación Rive (Shapes)
+          // 1. EL FONDO ANIMADO (Ajustado a tus carpetas)
           const RiveAnimation.asset(RiveAssets.shapes),
 
-          // 3. Efecto Blur (Glassmorphism)
+          // 2. EL EFECTO GLASSMORPHISM (Desenfoque)
+          // Senior Tip: Un sigma de 30 da ese toque 'Apple' muy elegante
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
@@ -34,14 +24,19 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
 
-          // 4. Capa de Texto y Botón
-          _buildContent(context),
+          // 3. EL CONTENIDO (UI Mockup)
+          const _LoginBody(),
         ],
       ),
     );
   }
+}
 
-  Widget _buildContent(BuildContext context) {
+class _LoginBody extends StatelessWidget {
+  const _LoginBody();
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -49,36 +44,72 @@ class LoginScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Spacer(),
+            // Título de alto impacto
             const Text(
-              "Sistema de\nProveedores",
+              "Gestión de\nProveedores",
               style: TextStyle(
-                fontSize: 50,
-                fontFamily: "Poppins",
-                fontWeight: FontWeight.w700,
-                height: 1.2,
+                fontSize: 55,
+                fontWeight: FontWeight.w800,
+                height: 1.1,
+                color: Color(0xFF171717),
               ),
             ),
+            const SizedBox(height: 16),
+            const Text(
+              "Optimiza tu cadena de suministro con nuestra plataforma inteligente.",
+              style: TextStyle(fontSize: 18, color: Colors.black54),
+            ),
+
             const Spacer(flex: 2),
-            _buildLoginButton(context),
-            const SizedBox(height: 50),
+
+            // Botón Maquetado (Aún sin lógica pesada)
+            _buildMockButton(context),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoginButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () =>
-          Provider.of<AuthProvider>(context, listen: false).login('client'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+  Widget _buildMockButton(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: const Text(
-        "Ingresar al Portal",
-        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+      child: ElevatedButton(
+        onPressed: () {
+          // Aquí dispararemos el modal del formulario después
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFF77D8E),
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 56),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.arrow_forward_rounded),
+            SizedBox(width: 8),
+            Text(
+              "COMENZAR",
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+            ),
+          ],
+        ),
       ),
     );
   }

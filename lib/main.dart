@@ -15,7 +15,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Sistema de Proveedores',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blueAccent),
+      theme: ThemeData(
+        useMaterial3: true,
+        // Definimos Poppins como fuente por defecto para títulos
+        fontFamily: "Poppins",
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6792FF),
+          background: const Color(0xFFF2F5FF),
+        ),
+        // Personalizamos el estilo de los textos para toda la app
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF171717),
+          ),
+          bodyMedium: TextStyle(fontFamily: "Inter", color: Color(0xFF4A4A4A)),
+        ),
+      ),
       home: const AuthWrapper(),
     );
   }
