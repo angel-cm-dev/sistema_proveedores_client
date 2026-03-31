@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // --- CORE (Lógica de Autenticación) ---
-import '../../../core/auth_provider.dart';
+import '../providers/auth_provider.dart';
 
 // --- PRESENTATION ---
 import '../screens/sign_up_screen.dart';

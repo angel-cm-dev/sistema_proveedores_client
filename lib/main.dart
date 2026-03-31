@@ -3,7 +3,7 @@ import 'package:flutter/services.dart'; // Para control del sistema (Status Bar)
 import 'package:provider/provider.dart';
 
 // Importaciones de lógica (Core)
-import 'core/auth_provider.dart';
+import 'features/auth/providers/auth_provider.dart';
 
 // Importaciones de interfaz (Presentation)
 import 'presentation/auth_wrapper.dart';

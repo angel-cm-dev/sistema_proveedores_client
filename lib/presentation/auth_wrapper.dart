@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 // --- IMPORTACIONES ABSOLUTAS (Sincronizadas con tu estructura de carpetas) ---
 //
-import 'package:sistema_proveedores_client/core/auth_provider.dart';
-import 'package:sistema_proveedores_client/presentation/auth/screens/sign_in_screen.dart';
+import 'package:sistema_proveedores_client/features/auth/providers/auth_provider.dart';
+import 'package:sistema_proveedores_client/features/auth/screens/sign_in_screen.dart';
 import 'package:sistema_proveedores_client/presentation/client/client_dashboard.dart';
 
 /// El "Portero" (Gatekeeper) de la aplicación.

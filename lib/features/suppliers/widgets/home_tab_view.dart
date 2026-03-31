@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 // --- CORE & MODELS ---
 import 'package:sistema_proveedores_client/core/models/supplier_model.dart';
-import 'package:sistema_proveedores_client/core/theme.dart';
-
 // --- WIDGETS ---
 import 'hcard.dart';
 import 'vcard.dart';

@@ -5,14 +5,22 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:rive/rive.dart' hide LinearGradient;
 
-// --- CORE & ASSETS ---
+// --- 1. CORE & ASSETS ---
 import 'package:sistema_proveedores_client/core/assets.dart';
 
-// --- WIDGETS ---
-import 'package:sistema_proveedores_client/presentation/auth/widgets/custom_tab_bar.dart';
-import 'package:sistema_proveedores_client/presentation/auth/widgets/home_tab_view.dart';
-import 'package:sistema_proveedores_client/presentation/auth/widgets/side_menu.dart';
+// --- 2. SHARED WIDGETS (Componentes Globales de UI) ---
+import 'package:sistema_proveedores_client/shared/widgets/custom_tab_bar.dart';
+import 'package:sistema_proveedores_client/shared/widgets/side_menu.dart';
 
+// --- 3. FEATURE WIDGETS (Lógica de Negocio por Dominio) ---
+import 'package:sistema_proveedores_client/features/suppliers/widgets/home_tab_view.dart';
+import 'package:sistema_proveedores_client/features/suppliers/widgets/supplier_search_tab_view.dart';
+import 'package:sistema_proveedores_client/features/orders/widgets/order_history_tab_view.dart';
+import 'package:sistema_proveedores_client/features/notifications/widgets/notification_list_tab_view.dart';
+import 'package:sistema_proveedores_client/features/profile/widgets/profile_tab_view.dart';
+
+/// [ClientDashboard] actúa como el Shell (caparazón) de la aplicación para clientes.
+/// Implementa una arquitectura de capas (Stack) para manejar transformaciones 3D.
 class ClientDashboard extends StatefulWidget {
   const ClientDashboard({super.key});
 
@@ -22,23 +30,25 @@ class ClientDashboard extends StatefulWidget {
 
 class _ClientDashboardState extends State<ClientDashboard>
     with TickerProviderStateMixin {
-  // --- Constantes de Configuración (Clean Code) ---
+  // ==========================================
+  // CONFIGURACIÓN Y CONSTANTES DE DISEÑO
+  // ==========================================
   static const double _sidebarWidth = 288.0;
   static const double _menuButtonOffset = 216.0;
   static const Duration _animDuration = Duration(milliseconds: 200);
+  static const Color _lightBgColor = Color(0xFFF7F9FC); // Fondo claro premium
 
-  // Colores de contraste (Sugerencia: Blanco para resaltar tarjetas)
-  static const Color _lightBgColor = Color(0xFFF7F9FC);
-
-  // --- Controladores de Animación ---
+  // ==========================================
+  // CONTROLADORES DE ANIMACIÓN Y ESTADO
+  // ==========================================
   late final AnimationController _sidebarAnimController;
   late final Animation<double> _sidebarAnim;
-  SMIBool? _isMenuOpenInput;
+  SMIBool? _isMenuOpenInput; // Control de estado para el icono Rive
 
-  // --- Estado de Navegación ---
-  int _selectedTabIndex = 0;
+  int _selectedTabIndex =
+      0; // Índice que controla el IndexedStack/AnimatedSwitcher
 
-  // Física de resorte para el efecto elástico premium
+  // Física de resorte para el efecto elástico premium (Senior UX)
   static const _springDesc = SpringDescription(
     mass: 0.1,
     stiffness: 40,
@@ -65,22 +75,27 @@ class _ClientDashboardState extends State<ClientDashboard>
     super.dispose();
   }
 
-  // --- Lógica de Rive (Menú) ---
+  // ==========================================
+  // LÓGICA DE INTERACCIÓN (RIVE & SISTEMA)
+  // ==========================================
+
+  /// Inicializa la máquina de estados del botón de menú
   void _onMenuIconInit(Artboard artboard) {
     final controller =
         StateMachineController.fromArtboard(artboard, "State Machine");
     if (controller != null) {
       artboard.addController(controller);
       _isMenuOpenInput = controller.findInput<bool>("isOpen") as SMIBool;
-      _isMenuOpenInput?.value = true;
+      _isMenuOpenInput?.value = true; // Sincronización inicial
     }
   }
 
-  // --- Lógica de Interfaz ---
+  /// Gestiona la apertura/cierre del menú con transformaciones 3D y feedback táctil
   void _toggleMenu() {
     if (_isMenuOpenInput == null) return;
 
     if (_isMenuOpenInput!.value) {
+      // Aplicamos simulación física para el rebote elástico
       _sidebarAnimController
           .animateWith(SpringSimulation(_springDesc, 0, 1, 0));
     } else {
@@ -88,9 +103,9 @@ class _ClientDashboardState extends State<ClientDashboard>
     }
 
     _isMenuOpenInput!.change(!_isMenuOpenInput!.value);
-    HapticFeedback.mediumImpact();
+    HapticFeedback.mediumImpact(); // Feedback profesional al interactuar
 
-    // Ajuste dinámico de iconos de barra de estado según visibilidad del menú
+    // Cambia el brillo de la barra de estado según la visibilidad del menú
     SystemChrome.setSystemUIOverlayStyle(_isMenuOpenInput!.value
         ? SystemUiOverlayStyle.dark
         : SystemUiOverlayStyle.light);
@@ -98,29 +113,31 @@ class _ClientDashboardState extends State<ClientDashboard>
 
   void _onTabChanged(int index) => setState(() => _selectedTabIndex = index);
 
+  // ==========================================
+  // CONSTRUCCIÓN DEL ÁRBOL DE WIDGETS
+  // ==========================================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      backgroundColor: _lightBgColor, // CAMBIO: Fondo claro para contraste
+      extendBody: true, // Crucial para que el contenido pase por debajo
+      backgroundColor: _lightBgColor,
       body: Stack(
         children: [
-          // 1. CAPA: SIDEBAR (Se oculta/muestra por la izquierda)
-          _buildSidebarLayer(),
-
-          // 2. CAPA: CUERPO PRINCIPAL (Con transformación 3D y Glassmorphism)
-          _buildMainBodyLayer(),
-
-          // 3. CAPA: BOTÓN DE MENÚ (Superior)
-          _buildMenuButtonLayer(),
+          _buildSidebarLayer(), // CAPA 1: Menú lateral (Z-Index Inferior)
+          _buildMainBodyLayer(), // CAPA 2: Contenido 3D (Z-Index Medio)
+          _buildMenuButtonLayer(), // CAPA 3: Botón de hamburguesa (Z-Index Superior)
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
-  // --- COMPONENTES MODULARIZADOS (SOLID: Responsabilidad Única) ---
+  // ==========================================
+  // CAPAS MODULARIZADAS (Mantenibilidad)
+  // ==========================================
 
+  /// [CAPA 1] Renderiza el SideMenu con rotación y desplazamiento negativo
   Widget _buildSidebarLayer() {
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -133,7 +150,7 @@ class _ClientDashboardState extends State<ClientDashboard>
           return Transform(
             alignment: Alignment.center,
             transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.001)
+              ..setEntry(3, 2, 0.001) // Perspectiva 3D
               ..rotateY(rotation)
               ..setTranslationRaw(translation, 0, 0),
             child: child,
@@ -141,12 +158,22 @@ class _ClientDashboardState extends State<ClientDashboard>
         },
         child: FadeTransition(
           opacity: _sidebarAnim,
-          child: const SideMenu(),
+          // --- REDIRECCIÓN INTEGRADA AQUÍ ---
+          child: SideMenu(
+            currentIndex: _selectedTabIndex,
+            onTabSelected: (index) {
+              if (_selectedTabIndex != index) {
+                _onTabChanged(index); // Cambia la pestaña
+              }
+              _toggleMenu(); // Cierra el menú lateral con la animación elástica
+            },
+          ),
         ),
       ),
     );
   }
 
+  /// [CAPA 2] Contenido Principal: Fondo Rive + Glassmorphism + Vistas de Pestañas
   Widget _buildMainBodyLayer() {
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -168,7 +195,8 @@ class _ClientDashboardState extends State<ClientDashboard>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(_sidebarAnim.value * 30),
                   child: IgnorePointer(
-                    ignoring: _sidebarAnim.value > 0.5,
+                    ignoring: _sidebarAnim.value >
+                        0.5, // Bloquea toques si el menú está abierto
                     child: child,
                   ),
                 ),
@@ -178,32 +206,35 @@ class _ClientDashboardState extends State<ClientDashboard>
         },
         child: Stack(
           children: [
-            // A. Fondo Animado Rive (Formas sutiles sobre blanco)
-            const RiveAnimation.asset(
-              RiveAssets.shapes,
-              fit: BoxFit.cover,
-            ),
+            // A. Fondo Animado (Rive)
+            const RiveAnimation.asset(RiveAssets.shapes, fit: BoxFit.cover),
 
-            // B. Capa de Desenfoque (Efecto Glassmorphism Claro)
+            // B. Capa Glassmorphism (Desenfoque dinámico)
             Positioned.fill(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: Container(
-                  color: Colors.white.withValues(alpha: 0.45),
-                ),
+                child: Container(color: Colors.white.withValues(alpha: 0.45)),
               ),
             ),
 
-            // C. Contenido reactivo
-            IndexedStack(
-              index: _selectedTabIndex,
-              children: [
-                const HomeTabView(), // Fondo transparente por dentro
-                _buildPlaceholderTab("Directorio de Proveedores"),
-                _buildPlaceholderTab("Seguimiento de Órdenes"),
-                _buildPlaceholderTab("Centro de Notificaciones"),
-                _buildPlaceholderTab("Configuración de Perfil"),
-              ],
+            // C. TRANSICIÓN CORPORATIVA: AnimatedSwitcher
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeInOutCubic,
+              switchOutCurve: Curves.easeInOutCubic,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.02),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: _getTabContent(_selectedTabIndex),
             ),
           ],
         ),
@@ -211,6 +242,7 @@ class _ClientDashboardState extends State<ClientDashboard>
     );
   }
 
+  /// [CAPA 3] Botón flotante para activar el SideMenu
   Widget _buildMenuButtonLayer() {
     return SafeArea(
       child: AnimatedBuilder(
@@ -234,21 +266,20 @@ class _ClientDashboardState extends State<ClientDashboard>
                     color: Colors.black12, blurRadius: 8, offset: Offset(0, 5))
               ],
             ),
-            child: RiveAnimation.asset(
-              RiveAssets.menuButton,
-              onInit: _onMenuIconInit,
-            ),
+            child: RiveAnimation.asset(RiveAssets.menuButton,
+                onInit: _onMenuIconInit),
           ),
         ),
       ),
     );
   }
 
+  /// Barra inferior personalizada con animación de ocultamiento
   Widget _buildBottomNavigationBar() {
     return AnimatedBuilder(
       animation: _sidebarAnim,
       builder: (context, child) => Transform.translate(
-        offset: Offset(0, _sidebarAnim.value * 300),
+        offset: Offset(0, _sidebarAnim.value * 300), // Se oculta al abrir
         child: child,
       ),
       child: Padding(
@@ -258,18 +289,24 @@ class _ClientDashboardState extends State<ClientDashboard>
     );
   }
 
-  Widget _buildPlaceholderTab(String title) {
-    return Center(
-      child: Text(
-        title,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.black87, // CAMBIO: Texto oscuro para fondo claro
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          fontFamily: "Poppins",
-        ),
-      ),
-    );
+  // ==========================================
+  // GESTOR DE VISTAS (Lógica de Pestañas)
+  // ==========================================
+
+  Widget _getTabContent(int index) {
+    switch (index) {
+      case 0:
+        return const HomeTabView(key: ValueKey(0));
+      case 1:
+        return const SupplierSearchTabView(key: ValueKey(1));
+      case 2:
+        return const OrderHistoryTabView(key: ValueKey(2));
+      case 3:
+        return const NotificationListTabView(key: ValueKey(3));
+      case 4:
+        return const ProfileTabView(key: ValueKey(4));
+      default:
+        return const HomeTabView(key: ValueKey(0));
+    }
   }
 }
