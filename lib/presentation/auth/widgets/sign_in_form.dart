@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Importaciones de lógica (Core)
+import '../../../core/auth_provider.dart';
+
+// Pantallas y Widgets (Presentation)
 import '../screens/sign_up_screen.dart';
 import 'social_auth_buttons.dart';
 
@@ -13,8 +19,8 @@ class _SignInFormState extends State<SignInForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   bool _isObscure = true;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -25,6 +31,9 @@ class _SignInFormState extends State<SignInForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Obtenemos el estado de carga del provider para deshabilitar botones
+    final auth = context.watch<AuthProvider>();
+
     return Form(
       key: _formKey,
       child: Column(
@@ -50,7 +59,7 @@ class _SignInFormState extends State<SignInForm> {
             controller: _emailController,
             hint: "angel@connexa.com",
             icon: Icons.alternate_email,
-            validator: (v) => !v!.contains('@') ? "Email inválido" : null,
+            keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 24),
 
@@ -82,12 +91,19 @@ class _SignInFormState extends State<SignInForm> {
           ),
 
           const SizedBox(height: 24),
-          _buildSubmitButton(),
-          const SizedBox(height: 32),
 
+          // BOTÓN PRINCIPAL
+          _buildSubmitButton(auth),
+
+          const SizedBox(height: 16),
+
+          // --- SECCIÓN DE BYPASS (TESTING FRONTEND) ---
+          _buildBypassSection(context),
+
+          const SizedBox(height: 32),
           _buildDivider(),
           const SizedBox(height: 32),
-          const SocialAuthButtons(), // Widget extraído
+          const SocialAuthButtons(),
           const SizedBox(height: 40),
           _buildFooter(),
         ],
@@ -95,7 +111,76 @@ class _SignInFormState extends State<SignInForm> {
     );
   }
 
-  // Componentes privados siguiendo DRY
+  // --- COMPONENTES PRIVADOS ROBUSTOS ---
+
+  Widget _buildSubmitButton(AuthProvider auth) => SizedBox(
+    width: double.infinity,
+    height: 60,
+    child: ElevatedButton(
+      onPressed: auth.isLoading
+          ? null
+          : () {
+              if (_formKey.currentState!.validate()) {
+                // Lógica de login real iría aquí
+              }
+            },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFF77D8E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        elevation: 0,
+      ),
+      child: auth.isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : const Text(
+              "Iniciar Sesión",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 17,
+              ),
+            ),
+    ),
+  );
+
+  Widget _buildBypassSection(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      TextButton(
+        onPressed: () =>
+            context.read<AuthProvider>().entrarComoDemo(SubscriptionLevel.free),
+        child: const Text(
+          "DEMO FREE",
+          style: TextStyle(
+            color: Colors.black45,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+        ),
+      ),
+      const Text("|", style: TextStyle(color: Colors.black12)),
+      TextButton(
+        onPressed: () => context.read<AuthProvider>().entrarComoDemo(
+          SubscriptionLevel.premium,
+        ),
+        child: const Text(
+          "DEMO PREMIUM",
+          style: TextStyle(
+            color: Color(0xFFF77D8E),
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+        ),
+      ),
+    ],
+  );
+
   Widget _buildLabel(String text) => Align(
     alignment: Alignment.centerLeft,
     child: Text(
@@ -115,13 +200,13 @@ class _SignInFormState extends State<SignInForm> {
     bool isPassword = false,
     bool obscureText = false,
     Widget? suffix,
-    String? Function(String?)? validator,
+    TextInputType? keyboardType,
   }) => Padding(
     padding: const EdgeInsets.only(top: 8),
     child: TextFormField(
       controller: controller,
       obscureText: obscureText,
-      validator: validator,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: Colors.black38, size: 22),
         suffixIcon: suffix,
@@ -136,29 +221,6 @@ class _SignInFormState extends State<SignInForm> {
         contentPadding: const EdgeInsets.symmetric(
           vertical: 20,
           horizontal: 16,
-        ),
-      ),
-    ),
-  );
-
-  Widget _buildSubmitButton() => SizedBox(
-    width: double.infinity,
-    height: 60,
-    child: ElevatedButton(
-      onPressed: () {
-        /* Lógica Auth */
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFF77D8E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        elevation: 0,
-      ),
-      child: const Text(
-        "Iniciar Sesión",
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 17,
         ),
       ),
     ),
@@ -199,12 +261,11 @@ class _SignInFormState extends State<SignInForm> {
     ],
   );
 
-  Route _createFadeRoute() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          const SignUpScreen(),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-          FadeTransition(opacity: animation, child: child),
-    );
-  }
+  Route _createFadeRoute() => PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) =>
+        const SignUpScreen(),
+    transitionDuration: const Duration(milliseconds: 500),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        FadeTransition(opacity: animation, child: child),
+  );
 }

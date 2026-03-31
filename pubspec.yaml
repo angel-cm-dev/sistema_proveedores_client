@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.4
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -13,10 +13,10 @@ dependencies:
 
   # --- ICONOGRAFÍA ---
   cupertino_icons: ^1.0.8
-  flutter_svg: ^2.0.10+1      # Para los iconos .svg de la plantilla
+  flutter_svg: ^2.0.10+1
 
   # --- UI & ANIMACIONES ---
-  rive: ^0.13.20              # Motor para tus archivos .riv (shapes, check, etc.)
+  rive: ^0.13.20
   google_fonts: ^6.2.1
 
   # --- NETWORKING & SEGURIDAD ---
@@ -31,12 +31,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
 
-  # 1. REGISTRO DE FUENTES (Basado en tu carpeta assets/fonts)
+  # REGISTRO DE FUENTES
   fonts:
     - family: Poppins
       fonts:
@@ -48,12 +48,10 @@ flutter:
         - asset: assets/fonts/Inter-SemiBold.ttf
           weight: 600
 
-  # 2. REGISTRO DE ASSETS (Rutas exactas según tu imagen)
-  # Nota: Flutter no es recursivo, hay que declarar cada subcarpeta que contenga archivos.
+  # REGISTRO DE ASSETS
   assets:
     - assets/fonts/
     - assets/samples/animations/
-    - assets/samples/ui/rive_app/
     - assets/samples/ui/rive_app/rive/
     - assets/samples/ui/rive_app/images/
     - assets/samples/ui/rive_app/images/avatars/
