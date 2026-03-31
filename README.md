@@ -1,64 +1,61 @@
-# 🏢 Sistema de Gestión de Proveedores - Frontend (Client)
+🏢 Sistema de Gestión de Proveedores - Frontend (Connexa)
+Este repositorio alberga el cliente oficial del Sistema de Gestión de Proveedores, una solución empresarial diseñada bajo estándares de ingeniería de software de alto rendimiento. La aplicación no solo busca la eficiencia operativa, sino que redefine la experiencia de usuario mediante transformaciones espaciales y una arquitectura desacoplada.
 
-![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)
-![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-green?style=for-the-badge)
+🏗️ Arquitectura: Feature-Driven Clean Architecture
+Hoy hemos migrado el proyecto hacia una Arquitectura basada en Características, lo que permite un escalamiento horizontal infinito sin comprometer la legibilidad del código. La lógica se organiza ahora de la siguiente manera:
 
-Este repositorio contiene la implementación del cliente para el Sistema de Gestión de Proveedores. El desarrollo se enfoca en una arquitectura desacoplada y una experiencia de usuario de alto impacto visual.
+📁 Organización de la Capa de Aplicación (/lib)
+core/: El núcleo del sistema. Contiene los modelos de datos inmutables (Order, Notification, User) y la gestión centralizada de temas y activos multimedia.
 
----
+features/: Cada módulo es una unidad de negocio independiente.
 
-## 🏗️ Arquitectura Técnica (Current State)
+Auth: Gestión de sesiones y flujos de acceso.
 
-El proyecto sigue los principios de **Clean Architecture**, organizando la lógica en capas para facilitar el mantenimiento y el escalamiento a niveles Senior.
+Suppliers: Directorio inteligente y búsqueda de proveedores.
 
-### Estructura de Directorios (`/lib`)
+Orders: Historial de transacciones y estados de pedido.
 
-* **`core/`**: Infraestructura base y lógica transversal.
-  * `assets.dart`: Gestión centralizada de recursos (Rive, fuentes y multimedia).
-  * `auth_provider.dart`: Gestión de estado reactivo mediante **Provider**. Controla la lógica de sesión y roles.
-* **`presentation/`**: Capa de interfaz de usuario.
-  * `auth/`: Implementación de la pantalla de bienvenida y el formulario de acceso.
-  * `auth_wrapper.dart`: Orquestador de rutas (Patrón Guard). Gestiona el renderizado dinámico basado en el estado del usuario.
+Notifications: Centro de alertas con gestión de gestos.
 
----
+Profile: Configuración de usuario con componentes expandibles.
 
-## 🎨 UI/UX: Visual Engineering
+shared/: Widgets y componentes transversales (como el Menú Lateral y la Barra de Navegación) que sirven a múltiples características.
 
-Se han implementado técnicas avanzadas de diseño para lograr una interfaz moderna y eficiente:
+🎨 Ingeniería Visual y UX 3D
+La interfaz de Connexa utiliza técnicas de renderizado avanzado para ofrecer una profundidad visual superior:
 
-1. **Glassmorphism:** Uso de `BackdropFilter` con `ImageFilter.blur` para crear superficies translúcidas, optimizando el rendimiento de renderizado.
-2. **Animaciones con Rive:** Integración de fondos dinámicos vectoriales (`shapes.riv`) que interactúan con la interfaz sin la sobrecarga de memoria de los archivos de video.
-3. **Typography & Layout:** Implementación de Google Fonts (Poppins/Inter) y una estructura de diseño basada en `Stack` para superposición de capas visuales.
+Shell de Navegación 3D: Se ha implementado un sistema de capas donde el contenido principal rota en el eje Y y reduce su escala al abrir el menú lateral, creando una ilusión de profundidad tridimensional mediante matrices de transformación.
 
----
+Sincronización de Capas: El botón de menú (desarrollado en Rive) está sincronizado con el estado de la animación de Flutter, garantizando que la interactividad táctil y la visual sigan el mismo ritmo.
 
-## 🛡️ Gestión de Estado y Flujo
+Efecto Glassmorphism: Aplicación estratégica de desenfoque de imagen en tiempo real para separar visualmente el contenido del fondo dinámico, manteniendo una jerarquía clara.
 
-El sistema utiliza **Provider** para la propagación de datos. Actualmente, el flujo de autenticación está estructurado para manejar:
+🛡️ Funcionalidades Implementadas (Estado Actual)
+1. Centro de Notificaciones Inteligente
+Interacción Táctil: Soporte para el gesto de deslizamiento (Swipe-to-dismiss) para limpiar alertas.
 
-* **Auth Status:** Control de entrada/salida de la aplicación.
-* **Roles & Tiers:** Estructura preparada para diferenciar entre usuarios Admin/Client y niveles Free/Premium.
+Lógica de Recuperación: Sistema de "Deshacer" (Undo) integrado mediante notificaciones flotantes, permitiendo revertir acciones accidentales.
 
-```dart
-// Lógica de ruteo dinámico implementada en AuthWrapper
-return authProvider.isAuthenticated
-    ? const MainScreen()
-    : const WelcomeScreen();
-```
+Lectura Dinámica: Tarjetas de notificación expandibles que permiten leer mensajes largos sin salir de la vista principal.
 
----
+2. Gestión de Perfil Modular
+Componentes Expandibles: Uso de tarjetas inteligentes que agrupan opciones funcionales, optimizando el espacio en pantalla.
 
-## 🛠️ Stack Tecnológico Implementado
+Identidad Visual: Integración de avatares 3D vectoriales para una representación profesional del usuario.
 
-| Herramienta | Aplicación |
-| :--- | :--- |
-| **Flutter SDK** | Core del desarrollo multiplataforma. |
-| **Provider** | State management para la lógica de autenticación. |
-| **Rive** | Motor de animaciones vectoriales interactivo. |
-| **Google Fonts** | Gestión de tipografía corporativa. |
+3. Navegación Sincronizada
+El Menú Lateral (SideMenu) actúa como el orquestador principal, permitiendo la redirección instantánea entre el Dashboard, el Directorio de Proveedores y la Configuración de Perfil, cerrándose automáticamente para reenfocar al usuario en la tarea actual.
 
----
+🛠️ Stack Tecnológico y Estándares
+Flutter SDK: Framework principal para la interfaz multiplataforma.
 
-**Desarrollado por [Angel Castañeda](https://github.com/angel-cm-dev)**
-*Ingeniero de Sistemas | Software Developer enfocado en Clean Code y Performance.*
+Rive: Motor de animación vectorial interactiva de baja latencia.
+
+Provider: Gestión de estado reactiva para la autenticación y flujo de datos.
+
+Intl & Equatable: Estándares de la industria para el formateo de moneda/fechas y la comparación eficiente de modelos de datos.
+
+Clean Code: Implementación estricta de principios SOLID y funciones de flecha para un código más limpio y declarativo.
+
+Desarrollado por Angel Castañeda
+Ingeniero de Sistemas enfocado en Performance y Arquitectura Limpia.
