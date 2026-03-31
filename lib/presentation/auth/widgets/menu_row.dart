@@ -7,6 +7,7 @@ import 'package:sistema_proveedores_client/core/models/menu_item.dart';
 import 'package:sistema_proveedores_client/core/assets.dart'; // Sin el 'as app_assets' para ser más directo
 
 class MenuRow extends StatelessWidget {
+  // ignore: use_super_parameters
   const MenuRow({
     Key? key,
     required this.menu,

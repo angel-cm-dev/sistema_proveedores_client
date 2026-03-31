@@ -1,135 +1,130 @@
 import 'package:flutter/material.dart';
 
+// --- IMPORTACIÓN DEL MODELO QUE CREAMOS (Separación de responsabilidades) ---
+import 'package:sistema_proveedores_client/core/models/user_model.dart';
+
 /// Roles de usuario permitidos en el ecosistema Connexa.
 enum UserRole { admin, operator, client, guest }
-
-/// Niveles de suscripción para clientes.
-enum SubscriptionLevel { free, premium, none }
-
-/// Modelo representativo del usuario.
-/// Senior Tip: Preparado para mapear respuestas JSON de Laravel.
-class UserModel {
-  final String id;
-  final String name;
-  final String email;
-  final UserRole role;
-  final SubscriptionLevel subscription;
-
-  UserModel({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.role,
-    this.subscription = SubscriptionLevel.none,
-  });
-
-  // Factory para facilitar la integración con la API de Laravel en el futuro
-  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-    id: json['id'].toString(),
-    name: json['name'],
-    email: json['email'],
-    role: UserRole.values.firstWhere(
-      (e) => e.name == json['role'],
-      orElse: () => UserRole.client,
-    ),
-    subscription: SubscriptionLevel.values.firstWhere(
-      (e) => e.name == json['subscription'],
-      orElse: () => SubscriptionLevel.free,
-    ),
-  );
-}
 
 class AuthProvider extends ChangeNotifier {
   // --- ESTADO PRIVADO ---
   UserModel? _user;
   bool _isLoading = true;
+  bool _hasError = false;
+  String? _errorMessage;
 
-  // --- GETTERS (Encapsulamiento SOLID) ---
-  bool get isAuthenticated => _user != null && _user!.role != UserRole.guest;
+  // --- GETTERS (Encapsulamiento SOLID & Arrow Functions) ---
+  bool get isAuthenticated => _user != null && _user!.rol != "guest";
   bool get isLoading => _isLoading;
+  bool get hasError => _hasError;
+  String? get errorMessage => _errorMessage;
   UserModel? get user => _user;
 
-  UserRole get role => _user?.role ?? UserRole.guest;
-  bool get isPremium => _user?.subscription == SubscriptionLevel.premium;
-
-  AuthProvider() {
-    _initializeSession();
+  // Retornamos el rol como Enum para el Switch del AuthWrapper
+  UserRole get role {
+    if (_user == null) return UserRole.guest;
+    return switch (_user!.rol.toLowerCase()) {
+      'admin' => UserRole.admin,
+      'operator' => UserRole.operator,
+      'client' => UserRole.client,
+      _ => UserRole.guest,
+    };
   }
 
-  /// Inicialización de sesión.
-  /// En producción, aquí leerías un JWT de FlutterSecureStorage.
-  Future<void> _initializeSession() async {
+  AuthProvider() {
+    checkAuthStatus();
+  }
+
+  /// EL CORAZÓN DEL AUTH: Verifica si hay sesión activa.
+  /// Senior Tip: Aquí es donde leerías el JWT de FlutterSecureStorage.
+  Future<void> checkAuthStatus() async {
     _setLoading(true);
+    _hasError = false;
+    _errorMessage = null;
+
     try {
+      // Simulamos la latencia de verificación del token con Laravel Sanctum
       await Future.delayed(const Duration(seconds: 2));
-      _user = null; // Iniciamos como Guest
+
+      // Por defecto iniciamos como Guest (null)
+      _user = null;
     } catch (e) {
+      _hasError = true;
+      _errorMessage = "No se pudo verificar la sesión: $e";
       debugPrint("❌ Error Session Init: $e");
     } finally {
+      // SIEMPRE cambiamos el estado de carga al final para desbloquear la UI
       _setLoading(false);
     }
   }
 
-  /// Autenticación con Backend.
-  /// RECUERDA: En Laravel, usa Sanctu/Passport y valida siempre en el server
-  /// para prevenir SQL Injection y Mass Assignment.
+  /// Autenticación con Backend (Laravel).
   Future<bool> login(String email, String password) async {
     _setLoading(true);
+    _hasError = false;
+
     try {
-      // Simulación de latencia de red
+      // Simulación de petición API
       await Future.delayed(const Duration(seconds: 1));
 
-      // Mock de respuesta exitosa.
+      // Mapeamos al UserModel que definimos anteriormente
       _user = UserModel(
-        id: "1",
-        name: "Angel Castañeda",
+        id: 1,
+        nombre: "Angel",
+        apellido: "Castañeda",
         email: email,
-        role: UserRole.client,
-        subscription: SubscriptionLevel.free,
+        username: "angel_dev",
+        rol: "client",
+        suscripcionTipo: "Free",
+        suscripcionEstado: "active",
       );
 
       return true;
     } catch (e) {
-      debugPrint("❌ Login Error: $e");
+      _hasError = true;
+      _errorMessage = "Credenciales incorrectas o error de servidor";
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// MÉTODO UNIFICADO BYPASS (Senior Choice)
-  /// Reemplaza los métodos individuales para cumplir con DRY.
-  /// Esto corrige el error de "method not defined" en tu sign_in_form.
-  void entrarComoDemo(SubscriptionLevel level) {
+  /// MÉTODO UNIFICADO BYPASS (Corregido y Async)
+  /// Corregimos el error del Future.delayed que no esperaba el resultado.
+  Future<void> entrarComoDemo(String tipoSuscripcion) async {
     _setLoading(true);
+    _hasError = false;
 
-    Future.delayed(const Duration(milliseconds: 600), () {
-      _user = UserModel(
-        id: level == SubscriptionLevel.premium ? "777" : "111",
-        name: level == SubscriptionLevel.premium
-            ? "Angel Premium"
-            : "Angel Free",
-        email: "demo@connexa.com",
-        role: UserRole.client,
-        subscription: level,
-      );
-      _setLoading(false);
-    });
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    _user = UserModel(
+      id: tipoSuscripcion == "Premium" ? 777 : 111,
+      nombre: "Angel",
+      apellido: tipoSuscripcion,
+      email: "demo@connexa.com",
+      username: "demo_user",
+      rol: "client",
+      suscripcionTipo: tipoSuscripcion,
+      suscripcionEstado: "active",
+    );
+
+    _setLoading(false);
   }
 
   /// Cierra sesión y limpia el estado global.
   void logout() {
     _user = null;
+    _hasError = false;
+    _errorMessage = null;
     notifyListeners();
   }
 
   // --- PRIVATE HELPERS ---
 
-  /// Centraliza el estado de carga para evitar re-renders innecesarios
-  /// si el valor no ha cambiado realmente.
+  /// Centraliza el estado de carga y asegura el notifyListeners.
   void _setLoading(bool value) {
     if (_isLoading == value) return; // Optimización de performance
     _isLoading = value;
-    notifyListeners();
+    notifyListeners(); // Esto es lo que saca al AuthWrapper del estado de carga
   }
 }

@@ -1,125 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_proveedores_client/core/models/supplier_model.dart';
 
-// --- IMPORTACIÓN CORREGIDA SEGÚN TU ESTRUCTURA ---
-import 'package:sistema_proveedores_client/core/models/courses.dart';
-
-class VCard extends StatefulWidget {
-  const VCard({Key? key, required this.course}) : super(key: key);
-
-  final CourseModel course;
-
-  @override
-  State<VCard> createState() => _VCardState();
-}
-
-class _VCardState extends State<VCard> {
-  // Lista de índices para cargar las imágenes de los avatares
-  final avatars = [4, 5, 6];
-
-  @override
-  void initState() {
-    avatars.shuffle(); // Un toque dinámico Senior para la UI
-    super.initState();
-  }
+class VCard extends StatelessWidget {
+  final SupplierModel supplier;
+  const VCard({super.key, required this.supplier});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 260, maxHeight: 310),
-      padding: const EdgeInsets.all(30),
+      width: 260,
+      height: 310,
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: [widget.course.color, widget.course.color.withOpacity(0.5)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight),
-        boxShadow: [
-          BoxShadow(
-            color: widget.course.color.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 12),
-          ),
-          BoxShadow(
-            color: widget.course.color.withOpacity(0.3),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          )
-        ],
+        color: supplier.color,
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                constraints: const BoxConstraints(maxWidth: 170),
-                child: Text(
-                  widget.course.title,
-                  style: const TextStyle(
-                      fontSize: 24,
-                      fontFamily: "Poppins",
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.course.subtitle ?? "",
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-                softWrap: false,
-                style: TextStyle(
-                    color: Colors.white.withOpacity(0.7), fontSize: 15),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.course.caption.toUpperCase(),
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white),
-              ),
-              const Spacer(),
-              // Fila de avatares apilados (Efecto Premium)
-              Wrap(
-                spacing: 8,
-                children: List.generate(
-                  avatars.length,
-                  (index) => Transform.translate(
-                    offset: Offset(index * -20, 0),
-                    child: ClipRRect(
-                      key: Key(index.toString()),
-                      borderRadius: BorderRadius.circular(22),
-                      child: Image.asset(
-                          "assets/samples/ui/rive_app/images/avatars/avatar_${avatars[index]}.jpg",
-                          width: 44,
-                          height: 44,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                width: 44,
-                                height: 44,
-                                color: Colors.white24,
-                                child: const Icon(Icons.person,
-                                    color: Colors.white54),
-                              )),
-                    ),
-                  ),
-                ),
-              )
-            ],
+          const Icon(Icons.business_center, color: Colors.white, size: 32),
+          const SizedBox(height: 20),
+          Text(
+            supplier.nombre,
+            maxLines: 2,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          // Imagen decorativa de la tarjeta (Tópico)
-          Positioned(
-              right: -10,
-              top: -10,
-              child: Image.asset(
-                widget.course.image,
-                height: 110, // Tamaño controlado para evitar overflow
-              ))
+          const SizedBox(height: 8),
+          Text(supplier.ubicacion,
+              style: const TextStyle(color: Colors.white70, fontSize: 16)),
+          const Spacer(),
+          // AVATARES: Cargando imágenes reales de la carpeta assets
+          _buildAvatarStack(),
         ],
       ),
+    );
+  }
+
+  Widget _buildAvatarStack() {
+    return Row(
+      children: List.generate(3, (i) {
+        return Transform.translate(
+          offset: Offset(i * -12.0, 0),
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: Colors.white24,
+            backgroundImage: AssetImage(
+                "assets/samples/ui/rive_app/images/avatars/avatar_${i + 1}.jpg"),
+          ),
+        );
+      }),
     );
   }
 }

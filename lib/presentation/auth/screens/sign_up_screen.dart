@@ -68,6 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              // ignore: deprecated_member_use
               child: Container(color: Colors.black.withOpacity(0.02)),
             ),
           ),
@@ -87,11 +88,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                     height: size.height * 0.92,
                     width: double.infinity,
                     decoration: BoxDecoration(
+                      // ignore: deprecated_member_use
                       color: Colors.white.withOpacity(0.4),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(40),
                       ),
                       border: Border.all(
+                        // ignore: deprecated_member_use
                         color: Colors.white.withOpacity(0.3),
                         width: 1.5,
                       ),
@@ -139,8 +142,10 @@ class _SignUpScreenState extends State<SignUpScreen>
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
+                    // ignore: deprecated_member_use
                     color: Colors.white.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(15),
+                    // ignore: deprecated_member_use
                     border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
                   child: const Icon(

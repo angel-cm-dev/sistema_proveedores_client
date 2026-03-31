@@ -1,54 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_proveedores_client/core/models/tab_item.dart';
 
+/// Modelo para los ítems del Menú Lateral (Drawer/SideMenu).
+/// Senior Tip: Mantenemos la inmutabilidad y la consistencia con TabItem.
 class MenuItemModel {
+  final String title;
+  final TabItem riveIcon;
+  final UniqueKey id;
+
   MenuItemModel({
-    this.id,
-    this.title = "",
+    required this.title,
     required this.riveIcon,
-  });
+  }) : id = UniqueKey();
 
-  UniqueKey? id = UniqueKey();
-  String title;
-  TabItem riveIcon;
-
-  static List<MenuItemModel> menuItems = [
+  // --- SECCIÓN: EXPLORAR (Discovery) ---
+  static final List<MenuItemModel> menuItems = [
     MenuItemModel(
-      title: "Home",
-      riveIcon: TabItem(stateMachine: "HOME_interactivity", artboard: "HOME"),
+      title: "Inicio",
+      riveIcon: TabItem(
+        title: "Inicio",
+        artboard: "HOME",
+        stateMachine: "HOME_interactivity",
+      ),
     ),
     MenuItemModel(
-      title: "Search",
-      riveIcon:
-          TabItem(stateMachine: "SEARCH_Interactivity", artboard: "SEARCH"),
+      title: "Proveedores",
+      riveIcon: TabItem(
+        title: "Proveedores",
+        artboard: "SEARCH",
+        stateMachine: "SEARCH_Interactivity",
+      ),
     ),
     MenuItemModel(
-      title: "Favorites",
-      riveIcon:
-          TabItem(stateMachine: "STAR_Interactivity", artboard: "LIKE/STAR"),
+      title: "Favoritos",
+      riveIcon: TabItem(
+        title: "Favoritos",
+        artboard: "LIKE/STAR",
+        stateMachine: "STAR_Interactivity",
+      ),
     ),
     MenuItemModel(
-      title: "Help",
-      riveIcon: TabItem(stateMachine: "CHAT_Interactivity", artboard: "CHAT"),
+      title: "Ayuda",
+      riveIcon: TabItem(
+        title: "Ayuda",
+        artboard: "CHAT",
+        stateMachine: "CHAT_Interactivity",
+      ),
     ),
   ];
 
-  static List<MenuItemModel> menuItems2 = [
+  // --- SECCIÓN: HISTORIAL (Operational) ---
+  static final List<MenuItemModel> menuItems2 = [
     MenuItemModel(
-      title: "History",
-      riveIcon: TabItem(stateMachine: "TIMER_Interactivity", artboard: "TIMER"),
+      title: "Mis Evaluaciones",
+      riveIcon: TabItem(
+        title: "Mis Evaluaciones",
+        artboard: "CHAT",
+        stateMachine: "CHAT_Interactivity",
+      ),
     ),
     MenuItemModel(
-      title: "Notification",
-      riveIcon: TabItem(stateMachine: "BELL_Interactivity", artboard: "BELL"),
+      title: "Historial Pagos",
+      riveIcon: TabItem(
+        title: "Historial Pagos",
+        artboard: "TIMER",
+        stateMachine: "TIMER_Interactivity",
+      ),
     ),
   ];
 
-  static List<MenuItemModel> menuItems3 = [
+  // --- SECCIÓN: CONFIGURACIÓN ---
+  static final List<MenuItemModel> menuItems3 = [
     MenuItemModel(
-      title: "Dark Mode",
-      riveIcon:
-          TabItem(stateMachine: "SETTINGS_Interactivity", artboard: "SETTINGS"),
+      title: "Modo Oscuro",
+      riveIcon: TabItem(
+        title: "Modo Oscuro",
+        artboard: "SETTINGS",
+        stateMachine: "SETTINGS_Interactivity",
+      ),
     ),
   ];
 }

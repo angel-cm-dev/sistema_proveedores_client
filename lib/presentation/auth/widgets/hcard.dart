@@ -1,49 +1,49 @@
 import 'package:flutter/material.dart';
-// --- RUTA CORREGIDA SEGÚN TU ESTRUCTURA ---
-import 'package:sistema_proveedores_client/core/models/courses.dart';
+import 'package:sistema_proveedores_client/core/models/supplier_model.dart';
 
 class HCard extends StatelessWidget {
-  const HCard({Key? key, required this.section}) : super(key: key);
-
-  final CourseModel section;
+  final SupplierModel supplier;
+  const HCard({super.key, required this.supplier});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxHeight: 110),
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
-        color: section.color,
-        borderRadius: BorderRadius.circular(30),
+        color: supplier.color,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         children: [
           Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  section.title,
+                  supplier.nombre,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontSize: 24, fontFamily: "Poppins", color: Colors.white),
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  section.caption,
-                  style: const TextStyle(
-                      fontSize: 17, fontFamily: "Inter", color: Colors.white),
-                )
+                const SizedBox(height: 4),
+                Text(supplier.ubicacion,
+                    style: const TextStyle(color: Colors.white70)),
               ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: VerticalDivider(
-                thickness: 0.8, width: 0, color: Colors.white24),
+          // ACCIÓN: Reemplazamos "iOS" por un botón de acción funcional
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_forward_ios,
+                color: Colors.white, size: 16),
           ),
-          // Asegúrate de que section.image contenga una ruta válida definida en assets.dart
-          Image.asset(section.image)
         ],
       ),
     );

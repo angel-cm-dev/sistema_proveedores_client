@@ -59,6 +59,7 @@ class _SignInScreenState extends State<SignInScreen>
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              // ignore: deprecated_member_use
               child: Container(color: Colors.black.withOpacity(0.02)),
             ),
           ),
@@ -153,11 +154,13 @@ class _SignInScreenState extends State<SignInScreen>
             height: size.height * 0.92,
             width: double.infinity,
             decoration: BoxDecoration(
+              // ignore: deprecated_member_use
               color: Colors.white.withOpacity(0.4),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(40),
               ),
               border: Border.all(
+                // ignore: deprecated_member_use
                 color: Colors.white.withOpacity(0.3),
                 width: 1.5,
               ),
@@ -193,6 +196,7 @@ class _SignInScreenState extends State<SignInScreen>
           },
           child: CircleAvatar(
             radius: 20,
+            // ignore: deprecated_member_use
             backgroundColor: Colors.white.withOpacity(0.5),
             child: const Icon(
               Icons.arrow_back_ios_new,

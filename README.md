@@ -46,6 +46,7 @@ return authProvider.isAuthenticated
     ? const MainScreen()
     : const WelcomeScreen();
 ```
+
 ---
 
 ## 🛠️ Stack Tecnológico Implementado

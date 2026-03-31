@@ -90,10 +90,12 @@ class _SignUpFormState extends State<SignUpForm> {
         hintText: hint,
         // HINT TRANSPARENTE PROFESIONAL
         hintStyle: TextStyle(
+          // ignore: deprecated_member_use
           color: Colors.black.withOpacity(0.15),
           fontWeight: FontWeight.w400,
         ),
         filled: true,
+        // ignore: deprecated_member_use
         fillColor: Colors.white.withOpacity(0.6),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

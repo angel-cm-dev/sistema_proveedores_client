@@ -8,6 +8,7 @@ import 'package:sistema_proveedores_client/core/theme.dart';
 import 'package:sistema_proveedores_client/core/assets.dart' as app_assets;
 
 class CustomTabBar extends StatefulWidget {
+  // ignore: use_super_parameters
   const CustomTabBar({Key? key, required this.onTabChange}) : super(key: key);
 
   final Function(int tabIndex) onTabChange;
@@ -54,10 +55,12 @@ class _CustomTabBarState extends State<CustomTabBar> {
         margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          // ignore: deprecated_member_use
           color: RiveAppTheme.background2.withOpacity(0.8),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
+              // ignore: deprecated_member_use
               color: RiveAppTheme.background2.withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 20),
