@@ -203,6 +203,11 @@ class _LoginCard extends StatelessWidget {
                   'Ingresa tus credenciales para continuar',
                   style: GoogleFonts.inter(color: Colors.white60, fontSize: 14),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Acceso para operadores y proveedores',
+                  style: GoogleFonts.inter(color: Colors.white38, fontSize: 12),
+                ),
                 const SizedBox(height: 28),
 
                 // Error banner
@@ -301,7 +306,7 @@ class _LoginCard extends StatelessWidget {
                 const SizedBox(height: 14),
                 Center(
                   child: Text(
-                    'Demo: operator@connexa.app / pass123',
+                    'Demo proveedor: operator@connexa.app / pass123',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       color: Colors.white24,

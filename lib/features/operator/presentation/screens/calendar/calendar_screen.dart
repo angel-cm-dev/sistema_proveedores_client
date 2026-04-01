@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/theme_controller.dart';
 import '../../../data/datasources/operator_mock_datasource.dart';
+import '../../widgets/operator_side_drawer.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -36,7 +38,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<CalendarEvent> _eventsFor(DateTime day) {
     final key = DateTime(day.year, day.month, day.day);
     final events = _allEvents[key] ?? [];
-    if (_typeFilter == null) return events;
+    if (_typeFilter == null) {
+      return events;
+    }
     return events.where((e) => e.type == _typeFilter).toList();
   }
 
@@ -45,22 +49,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return d.year == now.year && d.month == now.month && d.day == now.day;
   }
 
-  bool _isSelected(DateTime d) =>
-      d.year == _selectedDay.year &&
-      d.month == _selectedDay.month &&
-      d.day == _selectedDay.day;
+  bool _isSelected(DateTime d) {
+    return d.year == _selectedDay.year &&
+        d.month == _selectedDay.month &&
+        d.day == _selectedDay.day;
+  }
 
-  void _prevMonth() => setState(() {
-    _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
-    _updateMonthBounds();
-  });
+  void _prevMonth() {
+    setState(() {
+      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
+      _updateMonthBounds();
+    });
+  }
 
-  void _nextMonth() => setState(() {
-    _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
-    _updateMonthBounds();
-  });
+  void _nextMonth() {
+    setState(() {
+      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
+      _updateMonthBounds();
+    });
+  }
 
-  // Upcoming events across all days (next 7 days)
   List<({DateTime date, CalendarEvent event})> get _upcomingAlerts {
     final today = DateTime(
       DateTime.now().year,
@@ -90,7 +98,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     final selectedEvents = _eventsFor(_selectedDay);
     final alerts = _upcomingAlerts;
-    final months = [
+    const months = [
       'Enero',
       'Febrero',
       'Marzo',
@@ -106,195 +114,283 @@ class _CalendarScreenState extends State<CalendarScreen> {
     ];
 
     return Scaffold(
+      drawer: const OperatorSideDrawer(selectedIndex: 1),
       backgroundColor: bgColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Calendario operativo',
-          style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: Column(
+      body: Stack(
         children: [
-          // ── Month header + grid ───────────────────────────────────────
-          Container(
-            color: cardColor,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          Positioned(
+            top: -110,
+            right: -70,
+            child: _BackdropGlow(
+              color: AppColors.primary.withValues(alpha: isDark ? 0.18 : 0.16),
+              size: 240,
+            ),
+          ),
+          Positioned(
+            top: 210,
+            left: -90,
+            child: _BackdropGlow(
+              color: AppColors.info.withValues(alpha: isDark ? 0.14 : 0.13),
+              size: 210,
+            ),
+          ),
+          SafeArea(
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.chevron_left_rounded,
-                        color: textPrimary,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 20, 10),
+                  child: Row(
+                    children: [
+                      Builder(
+                        builder: (context) => Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.06),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.menu_rounded,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.lightText,
+                            ),
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                          ),
+                        ),
                       ),
-                      onPressed: _prevMonth,
-                    ),
-                    Text(
-                      '${months[_focusedDay.month - 1]} ${_focusedDay.year}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.chevron_right_rounded,
-                        color: textPrimary,
-                      ),
-                      onPressed: _nextMonth,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do']
-                      .map(
-                        (d) => Expanded(
-                          child: Center(
-                            child: Text(
-                              d,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Calendario',
+                              style: GoogleFonts.poppins(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                color: textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'Agenda operativa y alertas de proveedor',
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
                                 color: textSecondary,
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 8),
-                _buildGrid(textPrimary, textSecondary),
-              ],
-            ),
-          ),
-
-          // ── Type filter chips ─────────────────────────────────────────
-          Container(
-            height: 44,
-            color: cardColor,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-              children: [
-                _TypeChip(
-                  label: 'Todos',
-                  color: AppColors.primary,
-                  isSelected: _typeFilter == null,
-                  onTap: () => setState(() => _typeFilter = null),
-                ),
-                ...CalendarEventType.values.map(
-                  (t) => Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: _TypeChip(
-                      label: t.label,
-                      color: _eventTypeColor(t),
-                      isSelected: _typeFilter == t,
-                      onTap: () => setState(
-                        () => _typeFilter = _typeFilter == t ? null : t,
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // ── Events + alerts ───────────────────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Selected day events
-                  Text(
-                    selectedEvents.isEmpty
-                        ? 'Sin eventos para este día'
-                        : '${selectedEvents.length} ${selectedEvents.length == 1 ? 'evento' : 'eventos'}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  if (selectedEvents.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Column(
+                Container(
+                  color: cardColor,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(
-                            Icons.event_available_rounded,
-                            size: 40,
-                            color: textSecondary.withValues(alpha: 0.4),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Sin actividad programada',
-                            style: GoogleFonts.inter(
-                              color: textSecondary,
-                              fontSize: 14,
+                          IconButton(
+                            icon: Icon(
+                              Icons.chevron_left_rounded,
+                              color: textPrimary,
                             ),
+                            onPressed: _prevMonth,
+                          ),
+                          Text(
+                            '${months[_focusedDay.month - 1]} ${_focusedDay.year}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.chevron_right_rounded,
+                              color: textPrimary,
+                            ),
+                            onPressed: _nextMonth,
                           ),
                         ],
                       ),
-                    )
-                  else
-                    ...selectedEvents.asMap().entries.map(
-                      (e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _EventTile(event: e.value, isDark: isDark),
+                      Row(
+                        children:
+                            const ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do']
+                                .map(
+                                  (d) =>
+                                      Expanded(child: Center(child: Text(d))),
+                                )
+                                .toList(),
                       ),
-                    ),
-
-                  // Upcoming alerts (next 7 days)
-                  if (alerts.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.notifications_active_rounded,
-                          size: 16,
-                          color: AppColors.warning,
+                      const SizedBox(height: 8),
+                      _buildGrid(textPrimary, textSecondary),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 44,
+                  color: cardColor,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+                    children: [
+                      _TypeChip(
+                        label: 'Todos',
+                        color: AppColors.primary,
+                        isSelected: _typeFilter == null,
+                        onTap: () => setState(() => _typeFilter = null),
+                      ),
+                      ...CalendarEventType.values.map(
+                        (t) => Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: _TypeChip(
+                            label: t.label,
+                            color: _eventTypeColor(t),
+                            isSelected: _typeFilter == t,
+                            onTap: () => setState(
+                              () => _typeFilter = _typeFilter == t ? null : t,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 6),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          'Próximos 7 días',
+                          selectedEvents.isEmpty
+                              ? 'Sin eventos para este día'
+                              : '${selectedEvents.length} ${selectedEvents.length == 1 ? 'evento' : 'eventos'}',
                           style: GoogleFonts.poppins(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: textPrimary,
                           ),
                         ),
+                        const SizedBox(height: 10),
+                        if (selectedEvents.isEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.event_available_rounded,
+                                  size: 40,
+                                  color: textSecondary.withValues(alpha: 0.4),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Sin actividad programada',
+                                  style: GoogleFonts.inter(
+                                    color: textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          ...selectedEvents.asMap().entries.map(
+                            (e) => TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: Duration(
+                                milliseconds: 180 + (e.key * 55),
+                              ),
+                              curve: Curves.easeOut,
+                              builder: (_, value, child) => Opacity(
+                                opacity: value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 10 * (1 - value)),
+                                  child: child,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: _EventTile(
+                                  event: e.value,
+                                  isDark: isDark,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (alerts.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.notifications_active_rounded,
+                                size: 16,
+                                color: AppColors.warning,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Próximos 7 días',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          ...alerts.toList().asMap().entries.map(
+                            (entry) => TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: Duration(
+                                milliseconds: 220 + (entry.key * 40),
+                              ),
+                              curve: Curves.easeOut,
+                              builder: (_, value, child) => Opacity(
+                                opacity: value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 10 * (1 - value)),
+                                  child: child,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: _AlertTile(
+                                  date: entry.value.date,
+                                  event: entry.value.event,
+                                  isDark: isDark,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    ...alerts.map(
-                      (a) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _AlertTile(
-                          date: a.date,
-                          event: a.event,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -310,7 +406,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   };
 
   Widget _buildGrid(Color textPrimary, Color textSecondary) {
-    // First weekday of month (Mon=1, so offset = weekday - 1)
     final startOffset = (_firstDayOfMonth.weekday - 1) % 7;
     final daysInMonth = _lastDayOfMonth.day;
     final totalCells = startOffset + daysInMonth;
@@ -333,7 +428,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
             return Expanded(
               child: GestureDetector(
                 onTap: () => setState(() => _selectedDay = day),
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
                   height: 36,
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
@@ -383,7 +480,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 }
 
-// ── Event tile ────────────────────────────────────────────────────────────────
+class _BackdropGlow extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _BackdropGlow({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, Colors.transparent],
+            stops: const [0.2, 1],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _EventTile extends StatelessWidget {
   final CalendarEvent event;
@@ -443,8 +562,6 @@ class _EventTile extends StatelessWidget {
     CalendarEventType.milestone => AppColors.warning,
   };
 }
-
-// ── Alert tile ────────────────────────────────────────────────────────────────
 
 class _AlertTile extends StatelessWidget {
   final DateTime date;
@@ -551,8 +668,6 @@ class _AlertTile extends StatelessWidget {
     CalendarEventType.milestone => Icons.flag_rounded,
   };
 }
-
-// ── Type chip ─────────────────────────────────────────────────────────────────
 
 class _TypeChip extends StatelessWidget {
   final String label;

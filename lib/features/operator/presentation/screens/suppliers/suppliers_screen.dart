@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/theme_controller.dart';
+import '../../widgets/operator_side_drawer.dart';
 import '../../../data/datasources/operator_mock_datasource.dart';
 import '../../../domain/entities/supplier_entity.dart';
 import 'supplier_detail_screen.dart';
@@ -58,22 +59,64 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         : AppColors.lightTextSecondary;
 
     return Scaffold(
+      drawer: const OperatorSideDrawer(selectedIndex: 3),
       backgroundColor: bgColor,
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // ── Title ───────────────────────────────────────────────────
+            // ── Title + menu ───────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                padding: const EdgeInsets.fromLTRB(14, 14, 20, 4),
+                child: Row(
+                  children: [
+                    Builder(
+                      builder: (context) => Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.menu_rounded,
+                            color: isDark ? Colors.white : AppColors.lightText,
+                          ),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Proveedores',
+                      style: GoogleFonts.poppins(
+                        fontSize: 38,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                 child: Text(
-                  'Proveedores',
-                  style: GoogleFonts.poppins(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: textPrimary,
-                  ),
+                  'Panel de gestión de proveedores',
+                  style: GoogleFonts.inter(fontSize: 13, color: textSecondary),
                 ),
               ),
             ),

@@ -239,6 +239,11 @@ class _RegisterCard extends StatelessWidget {
                   'Únete al equipo de Connexa',
                   style: GoogleFonts.inter(color: Colors.white60, fontSize: 14),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Registro orientado a operador/proveedor',
+                  style: GoogleFonts.inter(color: Colors.white38, fontSize: 12),
+                ),
                 if (errorMessage != null) ...[
                   const SizedBox(height: 14),
                   Container(

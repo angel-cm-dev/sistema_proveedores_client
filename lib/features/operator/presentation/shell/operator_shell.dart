@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/theme_controller.dart';
+import '../widgets/operator_side_drawer.dart';
 import '../screens/calendar/calendar_screen.dart';
 import '../screens/home/operator_home_screen.dart';
 import '../screens/orders/orders_screen.dart';
@@ -30,75 +30,72 @@ class _OperatorShellState extends State<OperatorShell> {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeController>().isDark;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final navBg = isDark
+        ? const Color(0xFF232D4A).withValues(alpha: 0.92)
+        : const Color(0xFF25365E).withValues(alpha: 0.92);
 
     return Scaffold(
+      drawer: OperatorSideDrawer(
+        selectedIndex: _currentIndex,
+        onNavigate: (i) => setState(() => _currentIndex = i),
+      ),
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: borderColor, width: 1)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) => setState(() => _currentIndex = i),
-          items: [
-            BottomNavigationBarItem(
-              icon: _NavIcon(
-                icon: Icons.home_outlined,
-                isSelected: _currentIndex == 0,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+        child: Container(
+          decoration: BoxDecoration(
+            color: navBg,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
               ),
-              activeIcon: _NavIcon(icon: Icons.home_rounded, isSelected: true),
-              label: 'Inicio',
-            ),
-            BottomNavigationBarItem(
-              icon: _NavIcon(
-                icon: Icons.calendar_month_outlined,
-                isSelected: _currentIndex == 1,
-              ),
-              activeIcon: _NavIcon(
-                icon: Icons.calendar_month_rounded,
-                isSelected: true,
-              ),
-              label: 'Calendario',
-            ),
-            BottomNavigationBarItem(
-              icon: _NavIcon(
-                icon: Icons.receipt_long_outlined,
-                isSelected: _currentIndex == 2,
-              ),
-              activeIcon: _NavIcon(
-                icon: Icons.receipt_long_rounded,
-                isSelected: true,
-              ),
-              label: 'Órdenes',
-            ),
-            BottomNavigationBarItem(
-              icon: _NavIcon(
-                icon: Icons.store_outlined,
-                isSelected: _currentIndex == 3,
-              ),
-              activeIcon: _NavIcon(icon: Icons.store_rounded, isSelected: true),
-              label: 'Proveedores',
-            ),
-            BottomNavigationBarItem(
-              icon: _NavIcon(
-                icon: Icons.person_outline_rounded,
-                isSelected: _currentIndex == 4,
-              ),
-              activeIcon: _NavIcon(
-                icon: Icons.person_rounded,
-                isSelected: true,
-              ),
-              label: 'Perfil',
-            ),
-          ],
-          selectedLabelStyle: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
+            ],
           ),
-          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavIcon(
+                icon: _currentIndex == 0
+                    ? Icons.home_rounded
+                    : Icons.home_outlined,
+                isSelected: _currentIndex == 0,
+                onTap: () => setState(() => _currentIndex = 0),
+              ),
+              _NavIcon(
+                icon: _currentIndex == 1
+                    ? Icons.calendar_month_rounded
+                    : Icons.calendar_month_outlined,
+                isSelected: _currentIndex == 1,
+                onTap: () => setState(() => _currentIndex = 1),
+              ),
+              _NavIcon(
+                icon: _currentIndex == 2
+                    ? Icons.receipt_long_rounded
+                    : Icons.receipt_long_outlined,
+                isSelected: _currentIndex == 2,
+                onTap: () => setState(() => _currentIndex = 2),
+              ),
+              _NavIcon(
+                icon: _currentIndex == 3
+                    ? Icons.store_rounded
+                    : Icons.store_outlined,
+                isSelected: _currentIndex == 3,
+                onTap: () => setState(() => _currentIndex = 3),
+              ),
+              _NavIcon(
+                icon: _currentIndex == 4
+                    ? Icons.person_rounded
+                    : Icons.person_outline_rounded,
+                isSelected: _currentIndex == 4,
+                onTap: () => setState(() => _currentIndex = 4),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -108,21 +105,35 @@ class _OperatorShellState extends State<OperatorShell> {
 class _NavIcon extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
+  final VoidCallback onTap;
 
-  const _NavIcon({required this.icon, required this.isSelected});
+  const _NavIcon({
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? AppColors.primary.withValues(alpha: 0.12)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        width: 56,
+        height: 44,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.22)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(
+          icon,
+          size: 22,
+          color: isSelected ? const Color(0xFF79B3FF) : Colors.white70,
+        ),
       ),
-      child: Icon(icon, size: 22),
     );
   }
 }

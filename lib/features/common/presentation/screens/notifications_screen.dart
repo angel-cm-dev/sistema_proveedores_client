@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../operator/presentation/widgets/operator_side_drawer.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -82,6 +83,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final textPrimary = isDark ? AppColors.darkText : AppColors.lightText;
 
     return Scaffold(
+      drawer: const OperatorSideDrawer(),
       backgroundColor: bgColor,
       body: SafeArea(
         child: CustomScrollView(
@@ -90,18 +92,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             // ── Header ──────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                padding: const EdgeInsets.fromLTRB(14, 14, 20, 4),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                      onPressed: () => Navigator.pop(context),
+                    Builder(
+                      builder: (context) => Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.menu_rounded,
+                            color: isDark ? Colors.white : AppColors.lightText,
+                          ),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
+                      ),
                     ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Notificaciones',
                         style: GoogleFonts.poppins(
-                          fontSize: 24,
+                          fontSize: 42,
                           fontWeight: FontWeight.w800,
                           color: textPrimary,
                         ),
