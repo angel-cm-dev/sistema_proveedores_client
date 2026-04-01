@@ -1,30 +1,27 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sistema_proveedores_client/features/auth/domain/entities/user_entity.dart';
+import 'package:sistema_proveedores_client/features/auth/presentation/controllers/auth_controller.dart';
 
-import 'package:sistema_proveedores_client/main.dart';
+// Smoke test: ConnexaApp renders Rive animations that can't load in test env.
+// We verify core app logic instead.
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('App smoke: UserRole enum has operator and owner', () {
+    expect(UserRole.values.length, 2);
+    expect(UserRole.values, contains(UserRole.operator));
+    expect(UserRole.values, contains(UserRole.owner));
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('App smoke: AuthStatus covers all expected states', () {
+    expect(
+      AuthStatus.values,
+      containsAll([
+        AuthStatus.initial,
+        AuthStatus.loading,
+        AuthStatus.authenticated,
+        AuthStatus.unauthenticated,
+        AuthStatus.error,
+      ]),
+    );
   });
 }
