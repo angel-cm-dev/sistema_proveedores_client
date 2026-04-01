@@ -24,6 +24,16 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<(UserEntity?, Failure?)> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  }) async {
+    return loginResult;
+  }
+
+  @override
   Future<Failure?> logout() async => null;
 }
 

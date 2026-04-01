@@ -235,11 +235,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       csv: csv,
       fileName: 'ordenes_${DateTime.now().millisecondsSinceEpoch}.csv',
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _exporting = false;
         _lastExportPath = path;
       });
+    }
   }
 
   Future<void> _exportSuppliers() async {
@@ -277,11 +278,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       csv: csv,
       fileName: 'proveedores_${DateTime.now().millisecondsSinceEpoch}.csv',
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _exporting = false;
         _lastExportPath = path;
       });
+    }
   }
 
   Future<void> _exportIncidents() async {
@@ -319,11 +321,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       csv: csv,
       fileName: 'incidencias_${DateTime.now().millisecondsSinceEpoch}.csv',
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _exporting = false;
         _lastExportPath = path;
       });
+    }
   }
 
   Future<void> _exportPerformance() async {
@@ -347,11 +350,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       csv: csv,
       fileName: 'rendimiento_${DateTime.now().millisecondsSinceEpoch}.csv',
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _exporting = false;
         _lastExportPath = path;
       });
+    }
   }
 
   Future<void> _share(String path) async {

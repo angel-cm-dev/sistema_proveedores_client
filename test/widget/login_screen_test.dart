@@ -27,6 +27,17 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<(UserEntity?, Failure?)> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 10));
+    return loginResult;
+  }
+
+  @override
   Future<Failure?> logout() async => null;
 }
 

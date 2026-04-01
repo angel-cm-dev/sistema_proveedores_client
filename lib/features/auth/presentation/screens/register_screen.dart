@@ -1,12 +1,14 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart' hide Image, LinearGradient;
+
 import '../../../../core/assets.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../controllers/auth_controller.dart';
 
-/// Registration screen — glassmorphism style matching login.
-/// Inspired by example designs but adapted to Connexa's dark aesthetic.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -29,9 +31,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   late final AnimationController _slideCtrl;
   late final Animation<Offset> _slideAnim;
   late final Animation<double> _fadeAnim;
-
-  bool _isLoading = false;
-  bool _success = false;
 
   @override
   void initState() {
@@ -63,25 +62,47 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     _nameFocus.unfocus();
     _emailFocus.unfocus();
     _passFocus.unfocus();
     _confirmFocus.unfocus();
 
-    setState(() => _isLoading = true);
-    // Simulate API call
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        _success = true;
-      });
+    final auth = context.read<AuthController>();
+    final success = await auth.register(
+      name: _nameCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      password: _passCtrl.text,
+    );
+
+    if (!mounted) {
+      return;
     }
+
+    if (success) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.error,
+        content: Text(auth.errorMessage ?? 'No se pudo crear la cuenta.'),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
+    final isLoading = auth.status == AuthStatus.loading;
+    final errorMessage = auth.status == AuthStatus.error
+        ? auth.errorMessage
+        : null;
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -115,23 +136,20 @@ class _RegisterScreenState extends State<RegisterScreen>
                         position: _slideAnim,
                         child: FadeTransition(
                           opacity: _fadeAnim,
-                          child: _success
-                              ? _SuccessCard(
-                                  onBack: () => Navigator.pop(context),
-                                )
-                              : _RegisterCard(
-                                  formKey: _formKey,
-                                  nameCtrl: _nameCtrl,
-                                  emailCtrl: _emailCtrl,
-                                  passCtrl: _passCtrl,
-                                  confirmCtrl: _confirmCtrl,
-                                  nameFocus: _nameFocus,
-                                  emailFocus: _emailFocus,
-                                  passFocus: _passFocus,
-                                  confirmFocus: _confirmFocus,
-                                  isLoading: _isLoading,
-                                  onSubmit: _submit,
-                                ),
+                          child: _RegisterCard(
+                            formKey: _formKey,
+                            nameCtrl: _nameCtrl,
+                            emailCtrl: _emailCtrl,
+                            passCtrl: _passCtrl,
+                            confirmCtrl: _confirmCtrl,
+                            nameFocus: _nameFocus,
+                            emailFocus: _emailFocus,
+                            passFocus: _passFocus,
+                            confirmFocus: _confirmFocus,
+                            isLoading: isLoading,
+                            errorMessage: errorMessage,
+                            onSubmit: _submit,
+                          ),
                         ),
                       ),
                     ),
@@ -146,8 +164,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 }
 
-// ── Register card ────────────────────────────────────────────────────────────
-
 class _RegisterCard extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController nameCtrl;
@@ -159,6 +175,7 @@ class _RegisterCard extends StatelessWidget {
   final FocusNode passFocus;
   final FocusNode confirmFocus;
   final bool isLoading;
+  final String? errorMessage;
   final VoidCallback onSubmit;
 
   const _RegisterCard({
@@ -173,6 +190,7 @@ class _RegisterCard extends StatelessWidget {
     required this.confirmFocus,
     required this.isLoading,
     required this.onSubmit,
+    this.errorMessage,
   });
 
   @override
@@ -194,7 +212,6 @@ class _RegisterCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Icon
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -222,9 +239,28 @@ class _RegisterCard extends StatelessWidget {
                   'Únete al equipo de Connexa',
                   style: GoogleFonts.inter(color: Colors.white60, fontSize: 14),
                 ),
+                if (errorMessage != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      errorMessage!,
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
-
-                // Name
                 _GlassField(
                   label: 'Nombre completo',
                   controller: nameCtrl,
@@ -243,8 +279,6 @@ class _RegisterCard extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-
-                // Email
                 _GlassField(
                   label: 'Correo electrónico',
                   controller: emailCtrl,
@@ -265,8 +299,6 @@ class _RegisterCard extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-
-                // Password
                 _GlassPasswordField(
                   label: 'Contraseña',
                   controller: passCtrl,
@@ -274,14 +306,16 @@ class _RegisterCard extends StatelessWidget {
                   textInputAction: TextInputAction.next,
                   onSubmitted: (_) => confirmFocus.requestFocus(),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Ingresa una contraseña';
-                    if (v.length < 6) return 'Mínimo 6 caracteres';
+                    if (v == null || v.isEmpty) {
+                      return 'Ingresa una contraseña';
+                    }
+                    if (v.length < 6) {
+                      return 'Minimo 6 caracteres';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 12),
-
-                // Confirm password
                 _GlassPasswordField(
                   label: 'Confirmar contraseña',
                   controller: confirmCtrl,
@@ -289,14 +323,16 @@ class _RegisterCard extends StatelessWidget {
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => onSubmit(),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Confirma tu contraseña';
-                    if (v != passCtrl.text) return 'Las contraseñas no coinciden';
+                    if (v == null || v.isEmpty) {
+                      return 'Confirma tu contraseña';
+                    }
+                    if (v != passCtrl.text) {
+                      return 'Las contraseñas no coinciden';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 24),
-
-                // Submit
                 _GradientButton(
                   label: 'Registrarse',
                   isLoading: isLoading,
@@ -310,88 +346,6 @@ class _RegisterCard extends StatelessWidget {
     );
   }
 }
-
-// ── Success card ─────────────────────────────────────────────────────────────
-
-class _SuccessCard extends StatelessWidget {
-  final VoidCallback onBack;
-  const _SuccessCard({required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.success,
-                  size: 48,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                '¡Cuenta creada!',
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Tu solicitud será revisada por un\nadministrador. Recibirás un correo\ncuando tu cuenta sea activada.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  color: Colors.white60,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 28),
-              GestureDetector(
-                onTap: onBack,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                  ),
-                  child: Text(
-                    'Volver al login',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Shared glass field ───────────────────────────────────────────────────────
 
 class _GlassField extends StatelessWidget {
   final String label;
@@ -430,7 +384,10 @@ class _GlassField extends StatelessWidget {
         prefixIcon: Icon(icon, color: Colors.white54, size: 20),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.08),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
@@ -456,8 +413,6 @@ class _GlassField extends StatelessWidget {
     );
   }
 }
-
-// ── Glass password field ─────────────────────────────────────────────────────
 
 class _GlassPasswordField extends StatefulWidget {
   final String label;
@@ -496,7 +451,11 @@ class _GlassPasswordFieldState extends State<_GlassPasswordField> {
       decoration: InputDecoration(
         labelText: widget.label,
         labelStyle: GoogleFonts.inter(color: Colors.white60),
-        prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.white54, size: 20),
+        prefixIcon: const Icon(
+          Icons.lock_outline_rounded,
+          color: Colors.white54,
+          size: 20,
+        ),
         suffixIcon: IconButton(
           icon: Icon(
             _obscured ? Icons.visibility_off_rounded : Icons.visibility_rounded,
@@ -507,7 +466,10 @@ class _GlassPasswordFieldState extends State<_GlassPasswordField> {
         ),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.08),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
@@ -534,8 +496,6 @@ class _GlassPasswordFieldState extends State<_GlassPasswordField> {
   }
 }
 
-// ── Gradient button ──────────────────────────────────────────────────────────
-
 class _GradientButton extends StatelessWidget {
   final String label;
   final bool isLoading;
@@ -557,10 +517,12 @@ class _GradientButton extends StatelessWidget {
         height: 54,
         decoration: BoxDecoration(
           gradient: isLoading
-              ? LinearGradient(colors: [
-                  AppColors.primary.withValues(alpha: 0.6),
-                  AppColors.secondary.withValues(alpha: 0.6),
-                ])
+              ? LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.6),
+                    AppColors.secondary.withValues(alpha: 0.6),
+                  ],
+                )
               : const LinearGradient(
                   colors: [AppColors.primary, AppColors.secondary],
                   begin: Alignment.topLeft,

@@ -28,6 +28,31 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<(UserEntity?, Failure?)> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  }) async {
+    try {
+      final user = await _dataSource.register(
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+      );
+      return (user, null);
+    } on EmailAlreadyInUseFailure catch (e) {
+      return (null, e);
+    } on NetworkFailure catch (e) {
+      return (null, e);
+    } catch (e) {
+      debugPrint('AuthRepositoryImpl.register error: $e');
+      return (null, const UnknownFailure());
+    }
+  }
+
+  @override
   Future<Failure?> logout() async {
     try {
       await _dataSource.logout();

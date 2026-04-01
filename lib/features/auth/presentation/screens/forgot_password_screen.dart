@@ -25,14 +25,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isLoading = false;
         _sent = true;
       });
+    }
   }
 
   @override

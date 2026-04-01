@@ -18,14 +18,19 @@ class OwnerProfileScreen extends StatelessWidget {
     final bgColor = isDark ? AppColors.darkBg : AppColors.lightBg;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final textPrimary = isDark ? AppColors.darkText : AppColors.lightText;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Perfil', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
+        title: Text(
+          'Perfil',
+          style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700),
+        ),
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -44,30 +49,60 @@ class OwnerProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    width: 72, height: 72,
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [AppColors.secondary, AppColors.primary]),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.secondary, AppColors.primary],
+                      ),
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: Center(
                       child: Text(
                         user?.initials ?? 'OW',
-                        style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.white),
+                        style: GoogleFonts.poppins(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Text(user?.name ?? 'Owner', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: textPrimary)),
+                  Text(
+                    user?.name ?? 'Owner',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(user?.email ?? '', style: GoogleFonts.inter(fontSize: 14, color: textSecondary)),
+                  Text(
+                    user?.email ?? '',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.secondary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text('Owner', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.secondary)),
+                    child: Text(
+                      'Owner',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondary,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -84,13 +119,26 @@ class OwnerProfileScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: AppColors.secondary, size: 20),
+                  Icon(
+                    isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                    color: AppColors.secondary,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: Text('Modo oscuro', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary))),
+                  Expanded(
+                    child: Text(
+                      'Modo oscuro',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ),
                   Switch.adaptive(
                     value: isDark,
                     onChanged: (_) => theme.toggle(),
-                    activeColor: AppColors.secondary,
+                    activeThumbColor: AppColors.secondary,
                   ),
                 ],
               ),
@@ -98,9 +146,24 @@ class OwnerProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Settings items
-            _SettingsTile(icon: Icons.notifications_outlined, label: 'Notificaciones', isDark: isDark, onTap: () {}),
-            _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Seguridad', isDark: isDark, onTap: () {}),
-            _SettingsTile(icon: Icons.info_outline_rounded, label: 'Acerca de Connexa', isDark: isDark, onTap: () {}),
+            _SettingsTile(
+              icon: Icons.notifications_outlined,
+              label: 'Notificaciones',
+              isDark: isDark,
+              onTap: () {},
+            ),
+            _SettingsTile(
+              icon: Icons.lock_outline_rounded,
+              label: 'Seguridad',
+              isDark: isDark,
+              onTap: () {},
+            ),
+            _SettingsTile(
+              icon: Icons.info_outline_rounded,
+              label: 'Acerca de Connexa',
+              isDark: isDark,
+              onTap: () {},
+            ),
             const SizedBox(height: 24),
 
             // Logout
@@ -112,14 +175,27 @@ class OwnerProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.logout_rounded, size: 18, color: AppColors.error),
+                    const Icon(
+                      Icons.logout_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
                     const SizedBox(width: 8),
-                    Text('Cerrar sesión', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.error)),
+                    Text(
+                      'Cerrar sesión',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.error,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -135,10 +211,19 @@ class OwnerProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Cerrar sesión', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Estás seguro de que deseas salir?', style: GoogleFonts.inter()),
+        title: Text(
+          'Cerrar sesión',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          '¿Estás seguro de que deseas salir?',
+          style: GoogleFonts.inter(),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -159,14 +244,21 @@ class _SettingsTile extends StatelessWidget {
   final bool isDark;
   final VoidCallback onTap;
 
-  const _SettingsTile({required this.icon, required this.label, required this.isDark, required this.onTap});
+  const _SettingsTile({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
     final textPrimary = isDark ? AppColors.darkText : AppColors.lightText;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -181,7 +273,16 @@ class _SettingsTile extends StatelessWidget {
           children: [
             Icon(icon, size: 20, color: AppColors.secondary),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary))),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
+              ),
+            ),
             Icon(Icons.chevron_right_rounded, size: 18, color: textSecondary),
           ],
         ),

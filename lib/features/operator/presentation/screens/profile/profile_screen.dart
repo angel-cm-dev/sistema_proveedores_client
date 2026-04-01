@@ -130,7 +130,7 @@ class ProfileScreen extends StatelessWidget {
                       trailing: Switch.adaptive(
                         value: isDark,
                         onChanged: (_) => themeCtrl.toggle(),
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                       ),
                       isDark: isDark,
                     ),
@@ -218,7 +218,9 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   );
-                  if (confirm == true) await auth.logout();
+                  if (confirm == true) {
+                    await auth.logout();
+                  }
                 },
                 child: Container(
                   width: double.infinity,

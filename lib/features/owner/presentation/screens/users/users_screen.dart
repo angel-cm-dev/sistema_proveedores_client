@@ -165,7 +165,7 @@ class _UsersScreenState extends State<UsersScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<UserRole>(
-                value: selectedRole,
+                initialValue: selectedRole,
                 items: UserRole.values
                     .map(
                       (r) => DropdownMenuItem(
@@ -189,8 +189,9 @@ class _UsersScreenState extends State<UsersScreen> {
             ElevatedButton(
               onPressed: () {
                 if (nameCtrl.text.trim().isEmpty ||
-                    emailCtrl.text.trim().isEmpty)
+                    emailCtrl.text.trim().isEmpty) {
                   return;
+                }
                 setState(() {
                   _users.add(
                     InternalUserEntity(

@@ -221,13 +221,15 @@ class _LoginCard extends StatelessWidget {
                   textInputAction: TextInputAction.next,
                   onSubmitted: (_) => passFocus.requestFocus(),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty)
+                    if (v == null || v.trim().isEmpty) {
                       return 'Ingresa tu correo';
+                    }
                     final emailRegex = RegExp(
                       r'^[\w-.]+@([\w-]+\.)+[\w-]{2,}$',
                     );
-                    if (!emailRegex.hasMatch(v.trim()))
+                    if (!emailRegex.hasMatch(v.trim())) {
                       return 'Correo inválido';
+                    }
                     return null;
                   },
                 ),
@@ -273,7 +275,8 @@ class _LoginCard extends StatelessWidget {
                 // Register link
                 Center(
                   child: GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/register'),
+                    onTap: () =>
+                        Navigator.pushNamed(context, RouteNames.register),
                     child: RichText(
                       text: TextSpan(
                         text: '¿No tienes una cuenta? ',

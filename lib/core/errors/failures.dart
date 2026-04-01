@@ -10,6 +10,12 @@ class InvalidCredentialsFailure extends Failure {
   const InvalidCredentialsFailure() : super('Correo o contraseña incorrectos.');
 }
 
+/// Correo ya registrado
+class EmailAlreadyInUseFailure extends Failure {
+  const EmailAlreadyInUseFailure()
+    : super('Este correo ya está registrado en Connexa.');
+}
+
 /// Error de conectividad de red
 class NetworkFailure extends Failure {
   const NetworkFailure() : super('Sin conexión a internet. Verifica tu red.');
@@ -17,7 +23,9 @@ class NetworkFailure extends Failure {
 
 /// El servidor respondió con un error inesperado
 class ServerFailure extends Failure {
-  const ServerFailure([super.message = 'Error del servidor. Intenta más tarde.']);
+  const ServerFailure([
+    super.message = 'Error del servidor. Intenta más tarde.',
+  ]);
 }
 
 /// Error desconocido / genérico
@@ -27,5 +35,6 @@ class UnknownFailure extends Failure {
 
 /// Token expirado o sesión inválida
 class SessionExpiredFailure extends Failure {
-  const SessionExpiredFailure() : super('Tu sesión ha expirado. Inicia sesión nuevamente.');
+  const SessionExpiredFailure()
+    : super('Tu sesión ha expirado. Inicia sesión nuevamente.');
 }

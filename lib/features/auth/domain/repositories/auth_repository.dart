@@ -9,6 +9,13 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<(UserEntity?, Failure?)> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  });
+
   Future<Failure?> logout();
 
   Future<UserEntity?> getSession();

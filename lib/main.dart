@@ -52,8 +52,14 @@ class ConnexaApp extends StatelessWidget {
         RouteNames.register: (_) => const RegisterScreen(),
         RouteNames.forgotPassword: (_) => const ForgotPasswordScreen(),
         RouteNames.changePassword: (_) => const ChangePasswordScreen(),
-        RouteNames.operator: (_) => const OperatorShell(),
-        RouteNames.owner: (_) => const OwnerShell(),
+        RouteNames.operator: (_) => const _RoleProtectedRoute(
+          expectedRole: UserRole.operator,
+          child: OperatorShell(),
+        ),
+        RouteNames.owner: (_) => const _RoleProtectedRoute(
+          expectedRole: UserRole.owner,
+          child: OwnerShell(),
+        ),
       },
     );
   }
@@ -124,6 +130,90 @@ class _SplashView extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Route-level guard for direct navigation attempts to role-specific shells.
+class _RoleProtectedRoute extends StatelessWidget {
+  final UserRole expectedRole;
+  final Widget child;
+
+  const _RoleProtectedRoute({required this.expectedRole, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
+
+    if (auth.status == AuthStatus.initial ||
+        auth.status == AuthStatus.loading) {
+      return const _SplashView();
+    }
+
+    if (!auth.isAuthenticated || auth.currentUser == null) {
+      return const WelcomeScreen();
+    }
+
+    if (auth.currentUser!.role != expectedRole) {
+      return _UnauthorizedRoleView(
+        currentRole: auth.currentUser!.displayRole,
+        targetRole: expectedRole == UserRole.owner ? 'Owner' : 'Operator',
+      );
+    }
+
+    return child;
+  }
+}
+
+class _UnauthorizedRoleView extends StatelessWidget {
+  final String currentRole;
+  final String targetRole;
+
+  const _UnauthorizedRoleView({
+    required this.currentRole,
+    required this.targetRole,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.darkBg,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.lock_outline_rounded,
+                color: AppColors.error,
+                size: 44,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Acceso restringido',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Tu rol actual es $currentRole y esta vista requiere rol $targetRole.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () =>
+                    Navigator.of(context).popUntil((r) => r.isFirst),
+                child: const Text('Volver al inicio'),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -191,7 +191,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   physics: const BouncingScrollPhysics(),
                   itemCount: _kpis.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, index) => const SizedBox(width: 12),
                   itemBuilder: (_, i) => KpiCard(kpi: _kpis[i]),
                 ),
               ),

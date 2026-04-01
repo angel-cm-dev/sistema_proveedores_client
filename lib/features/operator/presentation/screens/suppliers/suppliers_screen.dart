@@ -37,10 +37,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   List<SupplierEntity> get _filtered => _all.where((s) {
     final statusOk = _statusFilter == null || s.status == _statusFilter;
-    final catOk = _categoryFilter == null || s.categories.contains(_categoryFilter);
-    final searchOk = _search.isEmpty ||
+    final catOk =
+        _categoryFilter == null || s.categories.contains(_categoryFilter);
+    final searchOk =
+        _search.isEmpty ||
         s.name.toLowerCase().contains(_search.toLowerCase()) ||
-        s.categories.any((c) => c.toLowerCase().contains(_search.toLowerCase()));
+        s.categories.any(
+          (c) => c.toLowerCase().contains(_search.toLowerCase()),
+        );
     return statusOk && catOk && searchOk;
   }).toList()..sort((a, b) => b.complianceScore.compareTo(a.complianceScore));
 
@@ -49,7 +53,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final isDark = context.watch<ThemeController>().isDark;
     final bgColor = isDark ? AppColors.darkBg : AppColors.lightBg;
     final textPrimary = isDark ? AppColors.darkText : AppColors.lightText;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -80,17 +86,31 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkCard : AppColors.lightCard,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                    ),
                   ),
                   child: TextField(
                     onChanged: (v) => setState(() => _search = v),
                     style: GoogleFonts.inter(fontSize: 14, color: textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Buscar por nombre o RUC...',
-                      hintStyle: GoogleFonts.inter(fontSize: 14, color: textSecondary),
-                      prefixIcon: Icon(Icons.search_rounded, size: 20, color: textSecondary),
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: textSecondary,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        size: 20,
+                        color: textSecondary,
+                      ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -108,24 +128,29 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   children: [
                     _CategoryChip(
                       label: 'Todos',
-                      isSelected: _categoryFilter == null && _statusFilter == null,
+                      isSelected:
+                          _categoryFilter == null && _statusFilter == null,
                       color: AppColors.primary,
                       onTap: () => setState(() {
                         _categoryFilter = null;
                         _statusFilter = null;
                       }),
                     ),
-                    ..._categories.map((cat) => Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: _CategoryChip(
-                        label: cat,
-                        isSelected: _categoryFilter == cat,
-                        color: _chipColor(cat),
-                        onTap: () => setState(() {
-                          _categoryFilter = _categoryFilter == cat ? null : cat;
-                        }),
+                    ..._categories.map(
+                      (cat) => Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _CategoryChip(
+                          label: cat,
+                          isSelected: _categoryFilter == cat,
+                          color: _chipColor(cat),
+                          onTap: () => setState(() {
+                            _categoryFilter = _categoryFilter == cat
+                                ? null
+                                : cat;
+                          }),
+                        ),
                       ),
-                    )),
+                    ),
                   ],
                 ),
               ),
@@ -137,7 +162,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
                 child: Text(
                   'Destacados',
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: textPrimary),
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
                 ),
               ),
             ),
@@ -148,11 +177,18 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
                   physics: const BouncingScrollPhysics(),
-                  itemCount: _filtered.where((s) => s.complianceScore >= 85).length.clamp(0, 4),
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemCount: _filtered
+                      .where((s) => s.complianceScore >= 85)
+                      .length
+                      .clamp(0, 4),
+                  separatorBuilder: (_, index) => const SizedBox(width: 12),
                   itemBuilder: (_, i) {
-                    final top = _filtered.where((s) => s.complianceScore >= 85).toList();
-                    if (i >= top.length) return const SizedBox.shrink();
+                    final top = _filtered
+                        .where((s) => s.complianceScore >= 85)
+                        .toList();
+                    if (i >= top.length) {
+                      return const SizedBox.shrink();
+                    }
                     return _FeaturedCard(
                       supplier: top[i],
                       index: i,
@@ -171,12 +207,19 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   children: [
                     Text(
                       'Directorio',
-                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: textPrimary),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
                     ),
                     const Spacer(),
                     Text(
                       '${_filtered.length} proveedores',
-                      style: GoogleFonts.inter(fontSize: 12, color: textSecondary),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -190,9 +233,19 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.storefront_outlined, size: 52, color: textSecondary.withValues(alpha: 0.3)),
+                          Icon(
+                            Icons.storefront_outlined,
+                            size: 52,
+                            color: textSecondary.withValues(alpha: 0.3),
+                          ),
                           const SizedBox(height: 12),
-                          Text('Sin resultados', style: GoogleFonts.inter(color: textSecondary, fontSize: 15)),
+                          Text(
+                            'Sin resultados',
+                            style: GoogleFonts.inter(
+                              color: textSecondary,
+                              fontSize: 15,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -216,7 +269,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   }
 
   void _openDetail(SupplierEntity s) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => SupplierDetailScreen(supplier: s)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => SupplierDetailScreen(supplier: s)),
+    );
   }
 
   Color _chipColor(String cat) {
@@ -254,7 +310,11 @@ class _FeaturedCard extends StatelessWidget {
   final int index;
   final VoidCallback onTap;
 
-  const _FeaturedCard({required this.supplier, required this.index, required this.onTap});
+  const _FeaturedCard({
+    required this.supplier,
+    required this.index,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -290,12 +350,21 @@ class _FeaturedCard extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.store_rounded, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.store_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             const SizedBox(height: 14),
             Text(
               supplier.name,
-              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white, height: 1.2),
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                height: 1.2,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -310,14 +379,21 @@ class _FeaturedCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${supplier.complianceScore.toStringAsFixed(0)}%',
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -328,7 +404,11 @@ class _FeaturedCard extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 18),
+                  child: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
               ],
             ),
@@ -367,7 +447,9 @@ class _SupplierListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accentColor = _tileColors[index % _tileColors.length];
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
 
     return GestureDetector(
       onTap: onTap,
@@ -399,7 +481,11 @@ class _SupplierListTile extends StatelessWidget {
               child: Center(
                 child: Text(
                   supplier.initials,
-                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: accentColor),
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: accentColor,
+                  ),
                 ),
               ),
             ),
@@ -411,14 +497,21 @@ class _SupplierListTile extends StatelessWidget {
                 children: [
                   Text(
                     supplier.name,
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? Colors.white : AppColors.lightText),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppColors.lightText,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 3),
                   Text(
                     supplier.categories.join(' · '),
-                    style: GoogleFonts.inter(fontSize: 11, color: textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: textSecondary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -433,7 +526,11 @@ class _SupplierListTile extends StatelessWidget {
                 color: accentColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.chevron_right_rounded, color: accentColor, size: 18),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                color: accentColor,
+                size: 18,
+              ),
             ),
           ],
         ),

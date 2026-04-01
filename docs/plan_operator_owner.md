@@ -453,6 +453,39 @@ Entregables:
 
 ---
 
+## [x] Fase 13 - Hardening auth, rol y baseline de calidad (1-2 dias)
+
+Objetivo:
+Cerrar brechas de autenticacion y calidad para dejar Connexa lista para piloto interno.
+
+Tareas:
+- Registro real de usuario nuevo en capa domain/data
+- Autologin inmediato tras registro exitoso
+- Redireccion segura por rol usando guardas estrictas
+- Persistencia de sesion mock con expiracion (TTL) e invalidacion segura
+- Limpieza de lints/deprecaciones en auth, operator y owner
+- Refuerzo de pruebas con smoke de registro->autologin->logout
+
+Entregables:
+- Flujo completo de registro funcional y autenticado
+- Guardas por rol aplicadas en rutas principales
+- Baseline limpia de analisis estatico
+- Suite de tests en verde con smoke adicional de auth
+
+Criterios de aceptacion:
+- Usuario nuevo se registra y entra a su shell por rol sin login manual
+- Logout limpia sesion y bloquea rutas privadas
+- flutter analyze sin issues
+- flutter test en verde
+
+Evidencia de cierre:
+- Comando: flutter analyze
+- Comando: flutter test
+- Resultado: No issues found! (flutter analyze)
+- Resultado: 29 tests passed (flutter test)
+
+---
+
 ## 6. Lista de vistas final sugerida
 
 ## 6.1 Comunes

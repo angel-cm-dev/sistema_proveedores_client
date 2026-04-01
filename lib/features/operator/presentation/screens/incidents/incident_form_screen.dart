@@ -31,14 +31,17 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     setState(() => _isSubmitting = true);
     await Future.delayed(const Duration(milliseconds: 900));
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isSubmitting = false;
         _submitted = true;
       });
+    }
   }
 
   @override
@@ -140,9 +143,12 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                         ),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'Ingresa un título';
-                        if (v.trim().length < 5) return 'Mínimo 5 caracteres';
+                        }
+                        if (v.trim().length < 5) {
+                          return 'Mínimo 5 caracteres';
+                        }
                         return null;
                       },
                     ),
@@ -204,9 +210,12 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                         alignLabelWithHint: true,
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'Ingresa una descripción';
-                        if (v.trim().length < 10) return 'Mínimo 10 caracteres';
+                        }
+                        if (v.trim().length < 10) {
+                          return 'Mínimo 10 caracteres';
+                        }
                         return null;
                       },
                     ),

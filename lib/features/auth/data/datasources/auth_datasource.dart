@@ -7,6 +7,15 @@ abstract class AuthDataSource {
   /// Lanza [InvalidCredentialsFailure] si las credenciales son incorrectas.
   Future<UserEntity> login({required String email, required String password});
 
+  /// Registra un nuevo usuario y crea sesión activa.
+  /// Lanza [EmailAlreadyInUseFailure] si el correo ya existe.
+  Future<UserEntity> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  });
+
   /// Cierra la sesión del usuario actual.
   Future<void> logout();
 

@@ -9,15 +9,30 @@ import 'package:sistema_proveedores_client/features/auth/presentation/controller
 class FakeAuthRepository implements AuthRepository {
   UserEntity? sessionUser;
   (UserEntity?, Failure?) loginResult = (null, null);
+  (UserEntity?, Failure?) registerResult = (null, null);
   bool logoutCalled = false;
 
   @override
   Future<UserEntity?> getSession() async => sessionUser;
 
   @override
-  Future<(UserEntity?, Failure?)> login({required String email, required String password}) async {
+  Future<(UserEntity?, Failure?)> login({
+    required String email,
+    required String password,
+  }) async {
     await Future.delayed(const Duration(milliseconds: 10));
     return loginResult;
+  }
+
+  @override
+  Future<(UserEntity?, Failure?)> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 10));
+    return registerResult;
   }
 
   @override
@@ -76,7 +91,10 @@ void main() {
       controller = AuthController(repo);
       await Future.delayed(const Duration(milliseconds: 50));
 
-      final success = await controller.login(email: 'operator@connexa.app', password: 'pass123');
+      final success = await controller.login(
+        email: 'operator@connexa.app',
+        password: 'pass123',
+      );
 
       expect(success, isTrue);
       expect(controller.status, AuthStatus.authenticated);
@@ -89,7 +107,10 @@ void main() {
       controller = AuthController(repo);
       await Future.delayed(const Duration(milliseconds: 50));
 
-      final success = await controller.login(email: 'bad@email.com', password: 'wrong');
+      final success = await controller.login(
+        email: 'bad@email.com',
+        password: 'wrong',
+      );
 
       expect(success, isFalse);
       expect(controller.status, AuthStatus.error);
@@ -102,7 +123,10 @@ void main() {
       controller = AuthController(repo);
       await Future.delayed(const Duration(milliseconds: 50));
 
-      final success = await controller.login(email: 'owner@connexa.app', password: 'pass123');
+      final success = await controller.login(
+        email: 'owner@connexa.app',
+        password: 'pass123',
+      );
 
       expect(success, isTrue);
       expect(controller.currentUser?.role, UserRole.owner);
@@ -123,6 +147,40 @@ void main() {
       expect(controller.currentUser, isNull);
       expect(controller.errorMessage, isNull);
       expect(repo.logoutCalled, isTrue);
+    });
+  });
+
+  group('AuthController - register', () {
+    test('successful register sets authenticated + user', () async {
+      repo.registerResult = (operatorUser, null);
+      controller = AuthController(repo);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final success = await controller.register(
+        name: 'Carlos Méndez',
+        email: 'operator@connexa.app',
+        password: 'pass123',
+      );
+
+      expect(success, isTrue);
+      expect(controller.status, AuthStatus.authenticated);
+      expect(controller.currentUser?.email, 'operator@connexa.app');
+    });
+
+    test('register duplicate email sets error + message', () async {
+      repo.registerResult = (null, const EmailAlreadyInUseFailure());
+      controller = AuthController(repo);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final success = await controller.register(
+        name: 'Carlos Méndez',
+        email: 'operator@connexa.app',
+        password: 'pass123',
+      );
+
+      expect(success, isFalse);
+      expect(controller.status, AuthStatus.error);
+      expect(controller.errorMessage, contains('registrado'));
     });
   });
 

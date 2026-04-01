@@ -73,7 +73,7 @@ class SettingsScreen extends StatelessWidget {
                       Switch.adaptive(
                         value: isDark,
                         onChanged: (_) => theme.toggle(),
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -262,7 +262,7 @@ class _ToggleTileState extends State<_ToggleTile> {
         Switch.adaptive(
           value: _value,
           onChanged: (v) => setState(() => _value = v),
-          activeColor: AppColors.primary,
+          activeThumbColor: AppColors.primary,
         ),
       ],
     );

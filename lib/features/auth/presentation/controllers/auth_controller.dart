@@ -59,6 +59,37 @@ class AuthController extends ChangeNotifier {
     return true;
   }
 
+  // ── Register + autologin ────────────────────────────────────────────────
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    UserRole role = UserRole.operator,
+  }) async {
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    final (user, failure) = await _repository.register(
+      name: name,
+      email: email,
+      password: password,
+      role: role,
+    );
+
+    if (failure != null) {
+      _status = AuthStatus.error;
+      _errorMessage = failure.message;
+      notifyListeners();
+      return false;
+    }
+
+    _currentUser = user;
+    _status = AuthStatus.authenticated;
+    notifyListeners();
+    return true;
+  }
+
   // ── Logout ────────────────────────────────────────────────────────────────
   Future<void> logout() async {
     await _repository.logout();
