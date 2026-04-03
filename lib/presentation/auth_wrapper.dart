@@ -1,97 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// --- IMPORTACIONES ABSOLUTAS (Sincronizadas con tu estructura de carpetas) ---
-//
+// --- IMPORTACIONES DE CAPAS ---
 import 'package:sistema_proveedores_client/features/auth/providers/auth_provider.dart';
 import 'package:sistema_proveedores_client/features/auth/screens/sign_in_screen.dart';
+import 'package:sistema_proveedores_client/features/auth/screens/loading_screen.dart';
 import 'package:sistema_proveedores_client/presentation/client/client_dashboard.dart';
 
-/// El "Portero" (Gatekeeper) de la aplicación.
-/// Orquesta la navegación reactiva basada en el estado del AuthProvider.
+/// El "Orquestador" de la aplicación.
+/// Maneja el estado global de autenticación y decide qué vista presentar.
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Escuchamos los cambios de estado en tiempo real.
+    // Escucha de forma reactiva el estado del AuthProvider.
     final auth = context.watch<AuthProvider>();
 
-    // Transición suave entre pantallas para una experiencia Premium.
+    // Usamos AnimatedSwitcher para que el paso entre Login, Carga y Dashboard
+    // sea suave y profesional.
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 600),
-      switchInCurve: Curves.easeInOut,
-      switchOutCurve: Curves.easeInOut,
-      child: _buildCurrentScreen(auth),
+      duration: const Duration(milliseconds: 500),
+      switchInCurve: Curves.easeIn,
+      switchOutCurve: Curves.easeOut,
+      // Indispensable para que el Switcher identifique el cambio de Widget
+      child: _mapStateToScreen(auth),
     );
   }
 
-  /// Fabrica la vista correspondiente según el estado atómico del AuthProvider.
-  Widget _buildCurrentScreen(AuthProvider auth) {
-    // 1. ESTADO DE CARGA: Se muestra mientras se verifica el token o sesión.
+  /// Mapea el estado del Provider a la pantalla correspondiente.
+  Widget _mapStateToScreen(AuthProvider auth) {
+    // 1. Prioridad: Estado de Carga (Splash/Auth Check)
     if (auth.isLoading) {
-      return const _AuthLoadingScreen(key: ValueKey('loading_state'));
+      return const LoadingScreen(key: ValueKey('auth_loading'));
     }
 
-    // 2. MANEJO DE ERRORES: Resiliencia ante fallos de red o servidor.
+    // 2. Manejo de Errores Globales (Fallo de servidor o red)
     if (auth.hasError) {
       return _AuthErrorScreen(
-        key: const ValueKey('error_state'),
-        message: auth.errorMessage ?? "Error de conexión con el servidor",
+        key: const ValueKey('auth_error'),
+        message: auth.errorMessage ?? "Error de conexión con Connexa",
         onRetry: () => auth.checkAuthStatus(),
       );
     }
 
-    // 3. RUTEO BASADO EN ROLES (Dart 3 Pattern Matching).
-    // Sincronizado con UserRole de auth_provider.dart
+    // 3. Enrutamiento por Roles (Dart 3 Pattern Matching)
     return switch (auth.role) {
-      UserRole.admin => const Scaffold(
-          key: ValueKey('view_admin'),
-          body: Center(child: Text("Panel Administrativo de Connexa")),
-        ),
-      UserRole.operator => const Scaffold(
-          key: ValueKey('view_operator'),
-          body: Center(child: Text("Panel de Operaciones")),
-        ),
+      UserRole.admin => const _AdminPlaceholder(key: ValueKey('view_admin')),
+      UserRole.operator =>
+        const _OperatorPlaceholder(key: ValueKey('view_operator')),
       UserRole.client => const ClientDashboard(key: ValueKey('view_client')),
       UserRole.guest => const SignInScreen(key: ValueKey('view_guest')),
     };
   }
 }
 
-// --- COMPONENTES DE INTERFAZ DE SOPORTE (Privados para este archivo) ---
-
-class _AuthLoadingScreen extends StatelessWidget {
-  const _AuthLoadingScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF17203A), // Navy corporativo
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(
-              color: Color(0xFFF77D8E), // Coral Accent
-              strokeWidth: 3,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              "CONNEXA",
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// --- COMPONENTES DE INTERFAZ PRIVADOS ---
 
 class _AuthErrorScreen extends StatelessWidget {
   final String message;
@@ -105,33 +69,43 @@ class _AuthErrorScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF17203A),
       body: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(40.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.wifi_off_rounded,
-                  color: Colors.white38, size: 72),
-              const SizedBox(height: 20),
+              const Icon(Icons.cloud_off_rounded,
+                  color: Color(0xFFF77D8E), size: 80),
+              const SizedBox(height: 24),
+              const Text(
+                "¡UPS!",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
               Text(
                 message,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70, fontSize: 16),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: onRetry,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF77D8E),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text("REINTENTAR",
+                  child: const Text("REINTENTAR CONEXIÓN",
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2)),
                 ),
               ),
             ],
@@ -140,4 +114,19 @@ class _AuthErrorScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+// Placeholders temporales para otros roles
+class _AdminPlaceholder extends StatelessWidget {
+  const _AdminPlaceholder({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text("Panel Admin")));
+}
+
+class _OperatorPlaceholder extends StatelessWidget {
+  const _OperatorPlaceholder({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text("Panel Operador")));
 }
