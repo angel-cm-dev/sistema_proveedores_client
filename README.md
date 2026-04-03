@@ -1,61 +1,73 @@
-🏢 Sistema de Gestión de Proveedores - Frontend (Connexa)
-Este repositorio alberga el cliente oficial del Sistema de Gestión de Proveedores, una solución empresarial diseñada bajo estándares de ingeniería de software de alto rendimiento. La aplicación no solo busca la eficiencia operativa, sino que redefine la experiencia de usuario mediante transformaciones espaciales y una arquitectura desacoplada.
+# 🏢 Connexa: Enterprise Supplier Management System
 
-🏗️ Arquitectura: Feature-Driven Clean Architecture
-Hoy hemos migrado el proyecto hacia una Arquitectura basada en Características, lo que permite un escalamiento horizontal infinito sin comprometer la legibilidad del código. La lógica se organiza ahora de la siguiente manera:
+[![Flutter](https://img.shields.io/badge/Flutter-3.27+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Architecture](https://img.shields.io/badge/Architecture-Feature--Driven%20Clean-FF6F00?logo=architecture&logoColor=white)](#-arquitectura-feature-driven-clean-architecture)
+[![Animation](https://img.shields.io/badge/UI--UX-Rive%203D%20Spatial-black?logo=rive&logoColor=white)](#-ingeniería-visual-y-spatial-ui)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-📁 Organización de la Capa de Aplicación (/lib)
-core/: El núcleo del sistema. Contiene los modelos de datos inmutables (Order, Notification, User) y la gestión centralizada de temas y activos multimedia.
+**Connexa** es una solución de gestión empresarial de alto rendimiento diseñada para optimizar la cadena de suministro. Este cliente frontend redefine la experiencia de usuario corporativa mediante la convergencia de una **Arquitectura Limpia** y un paradigma de **Spatial UI** (Interfaz Espacial).
 
-features/: Cada módulo es una unidad de negocio independiente.
+---
 
-Auth: Gestión de sesiones y flujos de acceso.
+## 🏗️ Arquitectura: Feature-Driven Clean Architecture
 
-Suppliers: Directorio inteligente y búsqueda de proveedores.
+El sistema ha sido migrado a una estructura orientada a dominios funcionales, permitiendo un **escalamiento horizontal desacoplado**. Esta arquitectura garantiza que cada característica sea una unidad lógica independiente, facilitando el mantenimiento y la inyectividad de dependencias.
 
-Orders: Historial de transacciones y estados de pedido.
+### 📁 Anatomía del Proyecto (`/lib`)
 
-Notifications: Centro de alertas con gestión de gestos.
+* **`core/`**: El motor del sistema. Implementa modelos de datos inmutables, gestión centralizada de `Themes`, `Assets` y utilitarios globales.
+* **`features/`**: Módulos de negocio independientes:
+    * **Auth**: Flujos de seguridad, validación OTP y persistencia de sesión.
+    * **Suppliers**: Directorio inteligente con búsqueda indexada y vistas detalladas.
+    * **Orders**: Orquestación de transacciones y trazabilidad de estados.
+    * **Notifications**: Centro de eventos con lógica de recuperación (Undo/Redo).
+    * **Profile**: Gestión de identidad mediante componentes expandibles y reactivos.
+* **`shared/`**: Biblioteca de componentes transversales y widgets de diseño atómico.
 
-Profile: Configuración de usuario con componentes expandibles.
+---
 
-shared/: Widgets y componentes transversales (como el Menú Lateral y la Barra de Navegación) que sirven a múltiples características.
+## 🎨 Ingeniería Visual y Spatial UI
 
-🎨 Ingeniería Visual y UX 3D
-La interfaz de Connexa utiliza técnicas de renderizado avanzado para ofrecer una profundidad visual superior:
+Connexa no solo presenta datos; crea una atmósfera de trabajo inmersiva mediante técnicas avanzadas de renderizado en Flutter:
 
-Shell de Navegación 3D: Se ha implementado un sistema de capas donde el contenido principal rota en el eje Y y reduce su escala al abrir el menú lateral, creando una ilusión de profundidad tridimensional mediante matrices de transformación.
+* **3D Navigation Shell**: Implementación de una arquitectura de capas (Layers) con **Matrix4 Transformations**. Al interactuar con el menú, el contenido principal realiza una rotación en el eje $Y$ y una reducción de escala ($0.92x$), generando una perspectiva tridimensional real.
+* **Rive Hybrid Integration**: Sincronización de máquinas de estado de Rive con el `AnimationController` de Flutter. El botón de menú no es una imagen, es un activo vectorial interactivo que responde al estado de la navegación en tiempo real.
+* **Hero & Motion Design**: Transiciones fluidas entre la lista y el detalle de proveedores mediante **Hero Animations**, manteniendo la continuidad visual del activo (Brand Consistency).
+* **Advanced Glassmorphism**: Uso de `BackdropFilter` y `ImageFilter.blur` para una segmentación visual profunda, permitiendo que los fondos dinámicos no interfieran con la legibilidad de la data operativa.
 
-Sincronización de Capas: El botón de menú (desarrollado en Rive) está sincronizado con el estado de la animación de Flutter, garantizando que la interactividad táctil y la visual sigan el mismo ritmo.
+---
 
-Efecto Glassmorphism: Aplicación estratégica de desenfoque de imagen en tiempo real para separar visualmente el contenido del fondo dinámico, manteniendo una jerarquía clara.
+## 🛡️ Hitos de Desarrollo e Implementación
 
-🛡️ Funcionalidades Implementadas (Estado Actual)
-1. Centro de Notificaciones Inteligente
-Interacción Táctil: Soporte para el gesto de deslizamiento (Swipe-to-dismiss) para limpiar alertas.
+### 1. Sistema de Notificaciones "Resiliente"
+* **Gesticulación Avanzada**: Integración de `Dismissible` con feedback háptico para el descarte de alertas.
+* **Lógica de Reversión**: Implementación de un búfer temporal que permite al usuario **"Deshacer"** acciones accidentales, mejorando la seguridad en la gestión de datos.
 
-Lógica de Recuperación: Sistema de "Deshacer" (Undo) integrado mediante notificaciones flotantes, permitiendo revertir acciones accidentales.
+### 2. Gestión de Identidad Blindada
+* **UserModel Senior**: El modelo de usuario incluye lógica de filtrado inteligente para asegurar la integridad de la identidad visual (`fullName` logic) y parsing robusto de tipos provenientes de la API.
+* **Profile Cards**: Componentes de UI que optimizan el *real estate* de la pantalla mediante estados expandibles dinámicos.
 
-Lectura Dinámica: Tarjetas de notificación expandibles que permiten leer mensajes largos sin salir de la vista principal.
+### 3. Navegación de Baja Latencia
+* **Stateful Orquestation**: El `SideMenu` actúa como un orquestador que sincroniza el `SelectedTabIndex` con las transformaciones 3D, asegurando cierres automáticos y re-enfoque de usuario sin caídas de frames (60/120 FPS).
 
-2. Gestión de Perfil Modular
-Componentes Expandibles: Uso de tarjetas inteligentes que agrupan opciones funcionales, optimizando el espacio en pantalla.
+---
 
-Identidad Visual: Integración de avatares 3D vectoriales para una representación profesional del usuario.
+## 🛠️ Stack Tecnológico y Estándares Senior
 
-3. Navegación Sincronizada
-El Menú Lateral (SideMenu) actúa como el orquestador principal, permitiendo la redirección instantánea entre el Dashboard, el Directorio de Proveedores y la Configuración de Perfil, cerrándose automáticamente para reenfocar al usuario en la tarea actual.
+* **Flutter SDK**: Core framework optimizado para performance.
+* **Rive**: Animaciones vectoriales interactivas de baja latencia.
+* **Provider**: Gestión de estado reactiva y eficiente.
+* **Intl & Equatable**: Estándares para internacionalización y comparación de objetos por valor (Value Equality).
+* **SOLID & Clean Code**: Código escrito bajo el principio de responsabilidad única, funciones de flecha para inmutabilidad y tipado fuerte.
 
-🛠️ Stack Tecnológico y Estándares
-Flutter SDK: Framework principal para la interfaz multiplataforma.
+---
 
-Rive: Motor de animación vectorial interactiva de baja latencia.
+## 👨‍💻 Engineering & Development
 
-Provider: Gestión de estado reactiva para la autenticación y flujo de datos.
+Desarrollado con enfoque en rendimiento y escalabilidad por:
 
-Intl & Equatable: Estándares de la industria para el formateo de moneda/fechas y la comparación eficiente de modelos de datos.
+**Angel Castañeda**
+*Ingeniero de Sistemas | Developer*
+> "La excelencia técnica no es un acto, es un hábito basado en la arquitectura y el performance."
 
-Clean Code: Implementación estricta de principios SOLID y funciones de flecha para un código más limpio y declarativo.
-
-Desarrollado por Angel Castañeda
-Ingeniero de Sistemas enfocado en Performance y Arquitectura Limpia.
+---
