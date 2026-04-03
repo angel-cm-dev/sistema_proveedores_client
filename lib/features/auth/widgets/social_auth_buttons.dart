@@ -1,34 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SocialAuthButtons extends StatelessWidget {
-  const SocialAuthButtons({super.key});
+  final VoidCallback? onGoogleTap;
+  final VoidCallback? onAppleTap;
+  final VoidCallback? onFacebookTap;
+
+  const SocialAuthButtons({
+    super.key,
+    this.onGoogleTap,
+    this.onAppleTap,
+    this.onFacebookTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _socialBox(Icons.g_mobiledata, () => debugPrint("Google Auth")),
-        _socialBox(Icons.apple, () => debugPrint("Apple Auth")),
-        _socialBox(Icons.facebook, () => debugPrint("Facebook Auth")),
+        _socialButton(
+          iconPath: 'assets/icons/google.png', // Asegúrate de tener los assets
+          onTap: onGoogleTap,
+          iconData: Icons.g_mobiledata_rounded, // Fallback si no usas imágenes
+        ),
+        const SizedBox(width: 20),
+        _socialButton(
+          iconPath: 'assets/icons/apple.png',
+          onTap: onAppleTap,
+          iconData: Icons.apple_rounded,
+        ),
+        const SizedBox(width: 20),
+        _socialButton(
+          iconPath: 'assets/icons/facebook.png',
+          onTap: onFacebookTap,
+          iconData: Icons.facebook_rounded,
+        ),
       ],
     );
   }
 
-  Widget _socialBox(IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+  Widget _socialButton({
+    String? iconPath,
+    required VoidCallback? onTap,
+    required IconData iconData,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact(); // Feedback táctil Senior
+        onTap?.call();
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        padding: const EdgeInsets.all(15),
+        height: 64,
+        width: 80,
         decoration: BoxDecoration(
-          // ignore: deprecated_member_use
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(16),
-          // ignore: deprecated_member_use
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 30, color: const Color(0xFF17203A)),
+        child: Center(
+          child: Icon(
+            iconData,
+            size: 28,
+            color: const Color(0xFF17203A), // Color Navy de tu tema
+          ),
+        ),
       ),
     );
   }

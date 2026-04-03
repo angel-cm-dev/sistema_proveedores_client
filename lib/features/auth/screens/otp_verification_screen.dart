@@ -5,10 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rive/rive.dart' hide Image;
 import '../../../core/assets.dart';
+import '../../../presentation/client/client_dashboard.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
-  const OtpVerificationScreen({super.key, required this.phoneNumber});
+  // --- MEJORA SENIOR: Callback para reutilizar la pantalla en Login o Password Reset ---
+  final VoidCallback? onSuccess;
+
+  const OtpVerificationScreen({
+    super.key,
+    required this.phoneNumber,
+    this.onSuccess,
+  });
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -18,7 +26,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     with SingleTickerProviderStateMixin {
   // --- Lógica de Estado ---
   int _secondsRemaining = 59;
-  late Timer _timer;
+  Timer? _timer; // Cambiado a nullable para manejo seguro
   bool _canResend = false;
   bool _hasError = false;
 
@@ -35,7 +43,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     super.initState();
     _startTimer();
 
-    // Configuración de animación de sacudida (0.5 segundos)
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -43,10 +50,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
   }
 
   void _startTimer() {
+    _timer?.cancel(); // Limpiar cualquier timer previo
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       if (_secondsRemaining == 0) {
         setState(() => _canResend = true);
-        _timer.cancel();
+        _timer?.cancel();
       } else {
         setState(() => _secondsRemaining--);
       }
@@ -55,7 +64,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel(); // CRÍTICO: Evita fugas de memoria
     _shakeController.dispose();
     for (var controller in _controllers) {
       controller.dispose();
@@ -66,79 +75,90 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     super.dispose();
   }
 
-  // --- Lógica Senior de Activación de Error ---
   void _triggerErrorFeedback() {
-    HapticFeedback.vibrate(); // Feedback físico
+    HapticFeedback.heavyImpact(); // Feedback físico más fuerte para error
     setState(() => _hasError = true);
 
-    // Iniciar animación de sacudida
     _shakeController.forward(from: 0.0);
 
-    // Resetear el estado de error y limpiar campos tras 1 segundo
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         setState(() => _hasError = false);
         for (var controller in _controllers) {
           controller.clear();
         }
-        _focusNodes[0].requestFocus(); // Devolver foco al primer campo
+        _focusNodes[0].requestFocus();
       }
     });
   }
 
   void _verifyOtp() {
-    String otp = _controllers.map((e) => e.text).join();
+    final String otp = _controllers.map((e) => e.text).join();
     if (otp.length == 4) {
-      // SIMULACIÓN: Supongamos que el código correcto es "1234"
+      // SIMULACIÓN: Backend Laravel valida el código
       if (otp == "1234") {
         HapticFeedback.mediumImpact();
-        debugPrint("Código Correcto: $otp");
-        // Navegar al Dashboard o Siguiente paso
+
+        // --- LÓGICA DE NAVEGACIÓN REUTILIZABLE ---
+        if (widget.onSuccess != null) {
+          widget
+              .onSuccess!(); // Ejecuta la acción personalizada (ej. ir a Reset Password)
+        } else {
+          // Por defecto va al Dashboard (Flujo de Login)
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const ClientDashboard()),
+            (route) => false,
+          );
+        }
       } else {
         _triggerErrorFeedback();
       }
     }
   }
 
-  // Helper para la animación de sacudida matemática
   double _getShakeOffset(double animationValue) {
-    // Curva de oscilación: 3 ciclos de sacudida
     return sin(animationValue * pi * 4) * 8;
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    const brandPink = Color(0xFFF77D8E);
+    const primaryDark = Color(0xFF17203A);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
+          // 1. Fondo Rive con RepaintBoundary para performance
           const Positioned.fill(
-            child: RiveAnimation.asset(RiveAssets.shapes, fit: BoxFit.cover),
+            child: RepaintBoundary(
+              child: RiveAnimation.asset(RiveAssets.shapes, fit: BoxFit.cover),
+            ),
           ),
+
+          // 2. Overlay Glass luminoso
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-              child: Container(color: Colors.black.withValues(alpha: 0.05)),
+              child: Container(color: Colors.white.withValues(alpha: 0.1)),
             ),
           ),
+
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                _buildHeader(context, primaryDark),
                 const Spacer(),
-                // Aplicar el efecto de sacudida a todo el Card
+
+                // 3. Card con Animación de Shake
                 AnimatedBuilder(
                   animation: _shakeController,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset:
-                          Offset(_getShakeOffset(_shakeController.value), 0),
-                      child: child,
-                    );
-                  },
-                  child: _buildGlassCard(size),
+                  builder: (context, child) => Transform.translate(
+                    offset: Offset(_getShakeOffset(_shakeController.value), 0),
+                    child: child,
+                  ),
+                  child: _buildGlassCard(brandPink, primaryDark),
                 ),
                 const Spacer(flex: 2),
               ],
@@ -149,40 +169,59 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     );
   }
 
-  Widget _buildHeader(BuildContext context) => Padding(
+  Widget _buildHeader(BuildContext context, Color color) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Align(
           alignment: Alignment.centerLeft,
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Color(0xFF17203A)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.8),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.arrow_back_ios_new_rounded,
+                  color: color, size: 20),
+            ),
           ),
         ),
       );
 
-  Widget _buildGlassCard(Size size) {
+  Widget _buildGlassCard(Color pink, Color navy) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.5),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(40),
         border: Border.all(
-            color: _hasError
-                ? Colors.red.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.4),
-            width: 1.5),
+          color: _hasError
+              ? Colors.red.withValues(alpha: 0.5)
+              : Colors.white.withValues(alpha: 0.4),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: navy.withValues(alpha: 0.08),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             "Verificación",
             style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF17203A)),
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: navy,
+              letterSpacing: -0.5,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -196,24 +235,26 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
           // FILA DE INPUTS OTP
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(4, (index) => _buildOtpField(index)),
+            children:
+                List.generate(4, (index) => _buildOtpField(index, navy, pink)),
           ),
 
           const SizedBox(height: 32),
-          _buildVerifyButton(),
+          _buildVerifyButton(pink),
           const SizedBox(height: 24),
-          _buildResendSection(),
+          _buildResendSection(pink),
         ],
       ),
     );
   }
 
-  Widget _buildOtpField(int index) {
+  Widget _buildOtpField(int index, Color navy, Color pink) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: 56,
       height: 64,
       decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _hasError ? Colors.red : Colors.transparent,
@@ -228,29 +269,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
         style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: _hasError ? Colors.red : const Color(0xFF17203A)),
+            color: _hasError ? Colors.red : navy),
         inputFormatters: [
           LengthLimitingTextInputFormatter(1),
           FilteringTextInputFormatter.digitsOnly,
         ],
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.8),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                  color: _hasError
-                      ? Colors.red.withValues(alpha: 0.3)
-                      : Colors.white24)),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                  color: _hasError ? Colors.red : const Color(0xFFF77D8E),
-                  width: 2)),
-        ),
+        decoration: const InputDecoration(border: InputBorder.none),
         onChanged: (value) {
           if (value.isNotEmpty && index < 3) {
             _focusNodes[index + 1].requestFocus();
@@ -266,27 +290,26 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     );
   }
 
-  Widget _buildVerifyButton() => SizedBox(
+  Widget _buildVerifyButton(Color pink) => SizedBox(
         width: double.infinity,
         height: 56,
         child: ElevatedButton(
           onPressed: _verifyOtp,
           style: ElevatedButton.styleFrom(
-            backgroundColor:
-                _hasError ? Colors.redAccent : const Color(0xFFF77D8E),
+            backgroundColor: _hasError ? Colors.redAccent : pink,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 0,
           ),
-          child: const Text("Verificar Código",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16)),
+          child: const Text(
+            "Verificar Código",
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ),
       );
 
-  Widget _buildResendSection() {
+  Widget _buildResendSection(Color pink) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -307,7 +330,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                 ? "Reenviar"
                 : "00:${_secondsRemaining.toString().padLeft(2, '0')}",
             style: TextStyle(
-              color: _canResend ? const Color(0xFFF77D8E) : Colors.black26,
+              color: _canResend ? pink : Colors.black26,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),

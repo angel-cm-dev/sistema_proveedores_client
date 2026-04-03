@@ -15,45 +15,32 @@ class LoadingScreen extends StatefulWidget {
 
 class _LoadingScreenState extends State<LoadingScreen>
     with TickerProviderStateMixin {
-  late AnimationController _mainController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late final AnimationController _animController;
+  late final Animation<double> _fadeAnim;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
 
-    _mainController = AnimationController(
+    _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1200),
     );
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _mainController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeIn);
+    _animController.forward();
 
-    // FIX: Se cambió Curves.outBack por Curves.easeOutBack
-    _scaleAnimation = CurvedAnimation(
-      parent: _mainController,
-      curve: const Interval(0.2, 0.7, curve: Curves.easeOutBack),
-    );
-
-    _mainController.forward();
-
-    _timer = Timer(const Duration(milliseconds: 3500), _completeLoading);
+    _timer = Timer(const Duration(milliseconds: 3800), _navigateToLogin);
   }
 
-  void _completeLoading() {
+  void _navigateToLogin() {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const SignInScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+        pageBuilder: (context, anim, __) => const SignInScreen(),
+        transitionsBuilder: (context, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 800),
       ),
     );
@@ -62,7 +49,7 @@ class _LoadingScreenState extends State<LoadingScreen>
   @override
   void dispose() {
     _timer?.cancel();
-    _mainController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
@@ -74,75 +61,90 @@ class _LoadingScreenState extends State<LoadingScreen>
     return Scaffold(
       backgroundColor: darkNavy,
       body: Stack(
-        alignment: Alignment.center,
         children: [
+          // 1. FONDO RIVE (Performance optimizado)
           const Positioned.fill(
             child: RepaintBoundary(
               child: RiveAnimation.asset(RiveAssets.shapes, fit: BoxFit.cover),
             ),
           ),
+
+          // 2. VIDRIO ESMERILADO (Glassmorphism)
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-              child: Container(color: darkNavy.withOpacity(0.3)),
+              filter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
+              child: Container(color: darkNavy.withOpacity(0.4)),
             ),
           ),
+
+          // 3. CONTENIDO CENTRAL (Estructura robusta)
           Center(
             child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      "CONNEXA",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 54,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 12.0,
-                        fontFamily: "Poppins",
-                      ),
+              opacity: _fadeAnim,
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centrado vertical
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Centrado horizontal
+                children: [
+                  // LOGO REDIMENSIONADO
+                  const Text(
+                    "CONNEXA",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 38, // Tamaño balanceado
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 10.0,
+                      fontFamily: "Poppins",
                     ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: 130,
-                      height: 130,
-                      child: Lottie.asset(
-                        'assets/samples/animations/animation_loader.json',
-                        fit: BoxFit.contain,
-                        delegates: LottieDelegates(
-                          values: [
-                            ValueDelegate.color(const ['**'],
-                                callback: (frameInfo) => brandPink),
-                          ],
-                        ),
-                        errorBuilder: (context, error, stackTrace) =>
-                            const CircularProgressIndicator(
-                                color: brandPink, strokeWidth: 2),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // ANIMACIÓN LOTTIE (Centrada y controlada)
+                  SizedBox(
+                    width: 100, // Más pequeño es más profesional
+                    height: 100,
+                    child: Lottie.asset(
+                      'assets/samples/animations/animation_loader.json',
+                      fit: BoxFit.contain,
+                      delegates: LottieDelegates(
+                        values: [
+                          ValueDelegate.color(const ['**'],
+                              callback: (_) => brandPink),
+                        ],
                       ),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const CircularProgressIndicator(
+                              color: brandPink, strokeWidth: 2),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
+
+          // 4. ESCLOGAN INFERIOR (Fijado al fondo con SafeArea)
           Positioned(
             bottom: 60,
+            left: 0,
+            right: 0,
             child: FadeTransition(
-              opacity: _fadeAnimation,
+              opacity: _fadeAnim,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     "CONECTANDO TU NEGOCIO",
                     style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        letterSpacing: 4,
-                        fontWeight: FontWeight.w600),
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 12,
+                      letterSpacing: 3,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 12),
+                  // Detalle visual de la marca
                   Container(
                     width: 40,
                     height: 3,
@@ -151,9 +153,10 @@ class _LoadingScreenState extends State<LoadingScreen>
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                            color: brandPink.withOpacity(0.5),
-                            blurRadius: 8,
-                            spreadRadius: 2)
+                          color: brandPink.withOpacity(0.5),
+                          blurRadius: 10,
+                          offset: const Offset(0, 0),
+                        )
                       ],
                     ),
                   ),
