@@ -4,23 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:rive/rive.dart' hide LinearGradient;
+import 'package:provider/provider.dart';
 
-// --- 1. CORE & ASSETS ---
+// --- CORE & ASSETS ---
 import 'package:sistema_proveedores_client/core/assets.dart';
+import 'package:sistema_proveedores_client/features/auth/providers/auth_provider.dart';
 
-// --- 2. SHARED WIDGETS (Componentes Globales de UI) ---
+// --- SHARED WIDGETS ---
 import 'package:sistema_proveedores_client/shared/widgets/custom_tab_bar.dart';
 import 'package:sistema_proveedores_client/shared/widgets/side_menu.dart';
 
-// --- 3. FEATURE WIDGETS (Lógica de Negocio por Dominio) ---
+// --- FEATURE TABS ---
 import 'package:sistema_proveedores_client/features/suppliers/widgets/home_tab_view.dart';
 import 'package:sistema_proveedores_client/features/suppliers/widgets/supplier_search_tab_view.dart';
 import 'package:sistema_proveedores_client/features/orders/widgets/order_history_tab_view.dart';
 import 'package:sistema_proveedores_client/features/notifications/widgets/notification_list_tab_view.dart';
 import 'package:sistema_proveedores_client/features/profile/widgets/profile_tab_view.dart';
 
-/// [ClientDashboard] actúa como el Shell (caparazón) de la aplicación para clientes.
-/// Implementa una arquitectura de capas (Stack) para manejar transformaciones 3D.
+/// [ClientDashboard] - Arquitectura 3D Inmersiva.
+/// Controla la navegación principal y la animación del menú lateral.
 class ClientDashboard extends StatefulWidget {
   const ClientDashboard({super.key});
 
@@ -31,41 +33,31 @@ class ClientDashboard extends StatefulWidget {
 class _ClientDashboardState extends State<ClientDashboard>
     with TickerProviderStateMixin {
   // ==========================================
-  // CONFIGURACIÓN Y CONSTANTES DE DISEÑO
+  // CONFIGURACIÓN DE UI & ANIMACIÓN
   // ==========================================
   static const double _sidebarWidth = 288.0;
-  static const double _menuButtonOffset = 216.0;
-  static const Duration _animDuration = Duration(milliseconds: 200);
-  static const Color _lightBgColor = Color(0xFFF7F9FC); // Fondo claro premium
+  static const double _menuButtonOffset = 220.0;
+  static const Duration _tabTransitionDuration = Duration(milliseconds: 400);
 
-  // ==========================================
-  // CONTROLADORES DE ANIMACIÓN Y ESTADO
-  // ==========================================
   late final AnimationController _sidebarAnimController;
   late final Animation<double> _sidebarAnim;
-  SMIBool? _isMenuOpenInput; // Control de estado para el icono Rive
+  SMIBool? _isMenuOpenInput;
 
-  int _selectedTabIndex =
-      0; // Índice que controla el IndexedStack/AnimatedSwitcher
-
-  // Física de resorte para el efecto elástico premium (Senior UX)
-  static const _springDesc = SpringDescription(
-    mass: 0.1,
-    stiffness: 40,
-    damping: 5,
-  );
+  int _selectedTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
 
     _sidebarAnimController = AnimationController(
-      duration: _animDuration,
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
-    _sidebarAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _sidebarAnimController, curve: Curves.linear),
+    // Curva de suavizado profesional
+    _sidebarAnim = CurvedAnimation(
+      parent: _sidebarAnimController,
+      curve: Curves.easeInOutQuart,
     );
   }
 
@@ -76,57 +68,66 @@ class _ClientDashboardState extends State<ClientDashboard>
   }
 
   // ==========================================
-  // LÓGICA DE INTERACCIÓN (RIVE & SISTEMA)
+  // LÓGICA DE INTERACCIÓN (RIVE & FEEDBACK)
   // ==========================================
 
-  /// Inicializa la máquina de estados del botón de menú
   void _onMenuIconInit(Artboard artboard) {
     final controller =
         StateMachineController.fromArtboard(artboard, "State Machine");
     if (controller != null) {
       artboard.addController(controller);
       _isMenuOpenInput = controller.findInput<bool>("isOpen") as SMIBool;
-      _isMenuOpenInput?.value = true; // Sincronización inicial
+      _isMenuOpenInput?.value = true;
     }
   }
 
-  /// Gestiona la apertura/cierre del menú con transformaciones 3D y feedback táctil
   void _toggleMenu() {
     if (_isMenuOpenInput == null) return;
 
     if (_isMenuOpenInput!.value) {
-      // Aplicamos simulación física para el rebote elástico
-      _sidebarAnimController
-          .animateWith(SpringSimulation(_springDesc, 0, 1, 0));
+      // Física Premium: Rebote elástico al abrir
+      _sidebarAnimController.animateWith(
+        SpringSimulation(
+          const SpringDescription(mass: 0.1, stiffness: 45, damping: 6),
+          0,
+          1,
+          0,
+        ),
+      );
     } else {
       _sidebarAnimController.reverse();
     }
 
     _isMenuOpenInput!.change(!_isMenuOpenInput!.value);
-    HapticFeedback.mediumImpact(); // Feedback profesional al interactuar
-
-    // Cambia el brillo de la barra de estado según la visibilidad del menú
-    SystemChrome.setSystemUIOverlayStyle(_isMenuOpenInput!.value
-        ? SystemUiOverlayStyle.dark
-        : SystemUiOverlayStyle.light);
+    HapticFeedback.mediumImpact();
   }
 
-  void _onTabChanged(int index) => setState(() => _selectedTabIndex = index);
-
-  // ==========================================
-  // CONSTRUCCIÓN DEL ÁRBOL DE WIDGETS
-  // ==========================================
+  void _onTabChanged(int index) {
+    if (_selectedTabIndex == index) return;
+    setState(() => _selectedTabIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Rendimiento Senior: Selección reactiva del nombre
+    final String userDisplayName = context.select<AuthProvider, String>((auth) {
+      return auth.user?.fullName ?? "Invitado";
+    });
+
     return Scaffold(
-      extendBody: true, // Crucial para que el contenido pase por debajo
-      backgroundColor: _lightBgColor,
+      extendBody: true,
+      backgroundColor:
+          const Color(0xFF17203A), // Color de fondo del menú lateral
       body: Stack(
         children: [
-          _buildSidebarLayer(), // CAPA 1: Menú lateral (Z-Index Inferior)
-          _buildMainBodyLayer(), // CAPA 2: Contenido 3D (Z-Index Medio)
-          _buildMenuButtonLayer(), // CAPA 3: Botón de hamburguesa (Z-Index Superior)
+          // CAPA 1: SideMenu (Fondo)
+          _buildSidebarLayer(),
+
+          // CAPA 2: Contenido con Transformación 3D (Z-Index Medio)
+          _buildMainBodyLayer(userDisplayName),
+
+          // CAPA 3: Botón de Menú Rive (Z-Index Superior)
+          _buildMenuButtonLayer(),
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
@@ -134,52 +135,37 @@ class _ClientDashboardState extends State<ClientDashboard>
   }
 
   // ==========================================
-  // CAPAS MODULARIZADAS (Mantenibilidad)
+  // CONSTRUCCIÓN DE CAPAS (WIDGET BUILDERS)
   // ==========================================
 
-  /// [CAPA 1] Renderiza el SideMenu con rotación y desplazamiento negativo
   Widget _buildSidebarLayer() {
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: _sidebarAnim,
         builder: (context, child) {
           final double translation = (1 - _sidebarAnim.value) * -_sidebarWidth;
-          final double rotation =
-              ((1 - _sidebarAnim.value) * -30) * math.pi / 180;
-
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.001) // Perspectiva 3D
-              ..rotateY(rotation)
-              ..setTranslationRaw(translation, 0, 0),
+          return Transform.translate(
+            offset: Offset(translation, 0),
             child: child,
           );
         },
-        child: FadeTransition(
-          opacity: _sidebarAnim,
-          // --- REDIRECCIÓN INTEGRADA AQUÍ ---
-          child: SideMenu(
-            currentIndex: _selectedTabIndex,
-            onTabSelected: (index) {
-              if (_selectedTabIndex != index) {
-                _onTabChanged(index); // Cambia la pestaña
-              }
-              _toggleMenu(); // Cierra el menú lateral con la animación elástica
-            },
-          ),
+        child: SideMenu(
+          currentIndex: _selectedTabIndex,
+          onTabSelected: (index) {
+            _onTabChanged(index);
+            _toggleMenu();
+          },
         ),
       ),
     );
   }
 
-  /// [CAPA 2] Contenido Principal: Fondo Rive + Glassmorphism + Vistas de Pestañas
-  Widget _buildMainBodyLayer() {
+  Widget _buildMainBodyLayer(String userName) {
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: _sidebarAnim,
         builder: (context, child) {
-          final double scale = 1 - (_sidebarAnim.value * 0.1);
+          final double scale = 1 - (_sidebarAnim.value * 0.12);
           final double translation = _sidebarAnim.value * 265;
           final double rotation = (_sidebarAnim.value * 30) * math.pi / 180;
 
@@ -193,10 +179,9 @@ class _ClientDashboardState extends State<ClientDashboard>
                   ..setEntry(3, 2, 0.001)
                   ..rotateY(rotation),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(_sidebarAnim.value * 30),
+                  borderRadius: BorderRadius.circular(_sidebarAnim.value * 35),
                   child: IgnorePointer(
-                    ignoring: _sidebarAnim.value >
-                        0.5, // Bloquea toques si el menú está abierto
+                    ignoring: _sidebarAnim.value > 0.5,
                     child: child,
                   ),
                 ),
@@ -204,82 +189,75 @@ class _ClientDashboardState extends State<ClientDashboard>
             ),
           );
         },
-        child: Stack(
-          children: [
-            // A. Fondo Animado (Rive)
-            const RiveAnimation.asset(RiveAssets.shapes, fit: BoxFit.cover),
+        child: Container(
+          color: const Color(0xFFF7F9FC), // Color de fondo de la app
+          child: Stack(
+            children: [
+              // Background Animado
+              const RiveAnimation.asset(RiveAssets.shapes, fit: BoxFit.cover),
 
-            // B. Capa Glassmorphism (Desenfoque dinámico)
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: Container(color: Colors.white.withValues(alpha: 0.45)),
+              // Glassmorphism Overlay
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                  child: Container(color: Colors.white.withValues(alpha: 0.45)),
+                ),
               ),
-            ),
 
-            // C. TRANSICIÓN CORPORATIVA: AnimatedSwitcher
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              switchInCurve: Curves.easeInOutCubic,
-              switchOutCurve: Curves.easeInOutCubic,
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.02),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                );
-              },
-              child: _getTabContent(_selectedTabIndex),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// [CAPA 3] Botón flotante para activar el SideMenu
-  Widget _buildMenuButtonLayer() {
-    return SafeArea(
-      child: AnimatedBuilder(
-        animation: _sidebarAnim,
-        builder: (context, child) => Padding(
-          padding:
-              EdgeInsets.only(left: _sidebarAnim.value * _menuButtonOffset),
-          child: child,
-        ),
-        child: GestureDetector(
-          onTap: _toggleMenu,
-          child: Container(
-            width: 44,
-            height: 44,
-            margin: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black12, blurRadius: 8, offset: Offset(0, 5))
-              ],
-            ),
-            child: RiveAnimation.asset(RiveAssets.menuButton,
-                onInit: _onMenuIconInit),
+              // Gestor de Pestañas
+              AnimatedSwitcher(
+                duration: _tabTransitionDuration,
+                switchInCurve: Curves.easeOutQuart,
+                switchOutCurve: Curves.easeInQuart,
+                child: _getTabContent(_selectedTabIndex, userName),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  /// Barra inferior personalizada con animación de ocultamiento
+  Widget _buildMenuButtonLayer() {
+    return SafeArea(
+      child: AnimatedBuilder(
+        animation: _sidebarAnim,
+        builder: (context, child) => Padding(
+          padding: EdgeInsets.only(
+            left: _sidebarAnim.value * _menuButtonOffset,
+          ),
+          child: child,
+        ),
+        child: GestureDetector(
+          onTap: _toggleMenu,
+          child: Container(
+            width: 50,
+            height: 50,
+            margin: const EdgeInsets.only(left: 16, top: 12),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
+              ],
+            ),
+            child: RiveAnimation.asset(
+              RiveAssets.menuButton,
+              onInit: _onMenuIconInit,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomNavigationBar() {
     return AnimatedBuilder(
       animation: _sidebarAnim,
       builder: (context, child) => Transform.translate(
-        offset: Offset(0, _sidebarAnim.value * 300), // Se oculta al abrir
+        offset:
+            Offset(0, _sidebarAnim.value * 200), // Se oculta al abrir el menú
         child: child,
       ),
       child: Padding(
@@ -290,13 +268,14 @@ class _ClientDashboardState extends State<ClientDashboard>
   }
 
   // ==========================================
-  // GESTOR DE VISTAS (Lógica de Pestañas)
+  // GESTOR DE ESTADOS DE VISTA
   // ==========================================
 
-  Widget _getTabContent(int index) {
+  Widget _getTabContent(int index, String name) {
+    // El uso de ValueKey es obligatorio para que AnimatedSwitcher detecte el cambio
     switch (index) {
       case 0:
-        return const HomeTabView(key: ValueKey(0));
+        return HomeTabView(key: const ValueKey(0), userName: name);
       case 1:
         return const SupplierSearchTabView(key: ValueKey(1));
       case 2:
@@ -306,7 +285,7 @@ class _ClientDashboardState extends State<ClientDashboard>
       case 4:
         return const ProfileTabView(key: ValueKey(4));
       default:
-        return const HomeTabView(key: ValueKey(0));
+        return HomeTabView(userName: name);
     }
   }
 }
