@@ -2,35 +2,72 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' hide LinearGradient;
 
-// --- IMPORTACIONES CORREGIDAS PARA TU PROYECTO ---
+// --- IMPORTACIONES DEL PROYECTO ---
 import 'package:sistema_proveedores_client/core/models/tab_item.dart';
 import 'package:sistema_proveedores_client/core/theme.dart';
 import 'package:sistema_proveedores_client/core/assets.dart' as app_assets;
 
 class CustomTabBar extends StatefulWidget {
-  // ignore: use_super_parameters
-  const CustomTabBar({Key? key, required this.onTabChange}) : super(key: key);
-
   final Function(int tabIndex) onTabChange;
+  final int
+      selectedIndex; // Parámetro para recibir el índice actual desde el padre
+
+  const CustomTabBar({
+    super.key,
+    required this.onTabChange,
+    this.selectedIndex = 0, // Valor por defecto
+  });
 
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();
 }
 
 class _CustomTabBarState extends State<CustomTabBar> {
-  // Usamos la lista estática definida en tu modelo TabItem
+  // Lista de iconos Rive para la barra inferior
   final List<TabItem> _icons = TabItem.tabItemsList;
 
-  int _selectedTab = 0;
+  // Estado interno de la selección
+  late int _selectedTab;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializamos el estado interno con el valor que manda el padre
+    _selectedTab = widget.selectedIndex;
+  }
+
+  // --- LA MAGIA DE LA SINCRONIZACIÓN ---
+  // Este método se ejecuta si el widget padre (ClientDashboard) cambia sus parámetros.
+  // Es crucial para que la barra se mueva si tocamos el SideMenu.
+  @override
+  void didUpdateWidget(covariant CustomTabBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedIndex != oldWidget.selectedIndex) {
+      setState(() {
+        _selectedTab = widget.selectedIndex;
+      });
+      // Animamos el nuevo icono seleccionado
+      _triggerRiveAnimation(_selectedTab);
+    }
+  }
 
   void _onRiveIconInit(Artboard artboard, int index) {
     final controller = StateMachineController.fromArtboard(
         artboard, _icons[index].stateMachine);
     if (controller != null) {
       artboard.addController(controller);
-      // Vinculamos el input "active" de la State Machine de Rive
+      // Vinculamos el input "active"
       _icons[index].status = controller.findInput<bool>("active") as SMIBool;
     }
+  }
+
+  void _triggerRiveAnimation(int index) {
+    _icons[index].status?.change(true);
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        _icons[index].status?.change(false);
+      }
+    });
   }
 
   void onTabPress(int index) {
@@ -38,13 +75,10 @@ class _CustomTabBarState extends State<CustomTabBar> {
       setState(() {
         _selectedTab = index;
       });
+      // Avisamos al padre (Dashboard) del cambio
       widget.onTabChange(index);
-
-      // Disparamos la animación de Rive
-      _icons[index].status?.change(true);
-      Future.delayed(const Duration(seconds: 1), () {
-        _icons[index].status?.change(false);
-      });
+      // Disparamos la animación del icono clickeado
+      _triggerRiveAnimation(index);
     }
   }
 
@@ -55,13 +89,13 @@ class _CustomTabBarState extends State<CustomTabBar> {
         margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          // ignore: deprecated_member_use
-          color: RiveAppTheme.background2.withOpacity(0.8),
+          color: RiveAppTheme.background2
+              .withValues(alpha: 0.8), // Updated to withValues
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              // ignore: deprecated_member_use
-              color: RiveAppTheme.background2.withOpacity(0.3),
+              color: RiveAppTheme.background2
+                  .withValues(alpha: 0.3), // Updated to withValues
               blurRadius: 20,
               offset: const Offset(0, 20),
             ),
@@ -76,9 +110,10 @@ class _CustomTabBarState extends State<CustomTabBar> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Indicador superior animado
+                  // Indicador superior (La línea azul)
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut, // Curva suave añadida
                     margin: const EdgeInsets.only(bottom: 2),
                     height: 4,
                     width: _selectedTab == index ? 20 : 0,
@@ -91,11 +126,12 @@ class _CustomTabBarState extends State<CustomTabBar> {
                   SizedBox(
                     height: 36,
                     width: 36,
-                    child: Opacity(
-                      opacity: _selectedTab == index ? 1 : 0.5,
+                    child: AnimatedOpacity(
+                      // Usar AnimatedOpacity mejora la transición
+                      duration: const Duration(milliseconds: 200),
+                      opacity: _selectedTab == index ? 1.0 : 0.5,
                       child: RiveAnimation.asset(
-                        app_assets
-                            .RiveAssets.icons, // Usando tu clase assets.dart
+                        app_assets.RiveAssets.icons,
                         artboard: icon.artboard,
                         onInit: (artboard) => _onRiveIconInit(artboard, index),
                       ),

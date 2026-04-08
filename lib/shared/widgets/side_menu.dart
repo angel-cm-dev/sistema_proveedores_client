@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,11 +8,11 @@ import 'package:rive/rive.dart';
 import 'package:sistema_proveedores_client/core/models/menu_item.dart';
 import 'package:sistema_proveedores_client/core/assets.dart';
 import 'package:sistema_proveedores_client/core/theme.dart';
-
-// --- FEATURES ---
 import 'package:sistema_proveedores_client/features/auth/providers/auth_provider.dart';
 
-// --- WIDGETS ---
+// --- IMPORTANTE: Verifica que esta ruta coincida con la tuya ---
+import 'package:sistema_proveedores_client/features/support/screens/help_support_screen.dart';
+
 import 'menu_row.dart';
 
 class SideMenu extends StatefulWidget {
@@ -31,63 +30,88 @@ class SideMenu extends StatefulWidget {
 }
 
 class _SideMenuState extends State<SideMenu> {
-  final List<MenuItemModel> _exploreMenu = MenuItemModel.menuItems;
-  final List<MenuItemModel> _historyMenu = MenuItemModel.menuItems2;
-  final List<MenuItemModel> _themeMenu = MenuItemModel.menuItems3;
-
+  late List<MenuItemModel> _mainNavMenu;
+  late MenuItemModel _helpItem;
   late String _selectedMenu;
   bool _isDarkMode = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeSafeMenus();
     _determineInitialSelection();
   }
 
-  /// Determina qué item del menú debe estar resaltado según el índice del Dashboard
+  // ==========================================
+  // FIX DEFINITIVO: ESCUCHA ACTIVA AL DASHBOARD
+  // ==========================================
+  @override
+  void didUpdateWidget(covariant SideMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si la barra inferior (a través del Dashboard) nos manda un nuevo índice:
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      setState(() {
+        _determineInitialSelection(); // Actualiza el botón azul (highlight)
+      });
+    }
+  }
+
+  void _initializeSafeMenus() {
+    final list1 = MenuItemModel.menuItems;
+    final list2 = MenuItemModel.menuItems2;
+
+    final fallbackIcon = list1.isNotEmpty
+        ? list1[0].riveIcon
+        : MenuItemModel.menuItems[0].riveIcon;
+
+    _mainNavMenu = [
+      MenuItemModel(
+          title: "Inicio",
+          riveIcon: list1.isNotEmpty ? list1[0].riveIcon : fallbackIcon),
+      MenuItemModel(
+          title: "Directorio",
+          riveIcon: list1.length > 1 ? list1[1].riveIcon : fallbackIcon),
+      MenuItemModel(
+          title: "Mis Órdenes",
+          riveIcon: list2.isNotEmpty ? list2[0].riveIcon : fallbackIcon),
+      MenuItemModel(
+          title: "Notificaciones",
+          riveIcon: list2.length > 1 ? list2[1].riveIcon : fallbackIcon),
+      MenuItemModel(
+          title: "Perfil",
+          riveIcon: list2.length > 2 ? list2[2].riveIcon : fallbackIcon),
+    ];
+
+    _helpItem = MenuItemModel(
+      title: "Ayuda y Soporte",
+      riveIcon: fallbackIcon,
+    );
+  }
+
   void _determineInitialSelection() {
-    if (widget.currentIndex < _exploreMenu.length) {
-      _selectedMenu = _exploreMenu[widget.currentIndex].title;
+    if (widget.currentIndex < _mainNavMenu.length) {
+      _selectedMenu = _mainNavMenu[widget.currentIndex].title;
     } else {
-      int historyIndex = widget.currentIndex - _exploreMenu.length;
-      if (historyIndex < _historyMenu.length) {
-        _selectedMenu = _historyMenu[historyIndex].title;
-      } else {
-        _selectedMenu = _exploreMenu[0].title;
-      }
+      _selectedMenu = "Inicio";
     }
   }
 
-  void onThemeRiveIconInit(Artboard artboard) {
-    final controller = StateMachineController.fromArtboard(
-        artboard, _themeMenu[0].riveIcon.stateMachine);
-    if (controller != null) {
-      artboard.addController(controller);
-      _themeMenu[0].riveIcon.status =
-          controller.findInput<bool>("active") as SMIBool;
-    }
-  }
-
-  void onThemeToggle(bool value) {
-    setState(() => _isDarkMode = value);
-    _themeMenu[0].riveIcon.status?.change(value);
-    HapticFeedback.mediumImpact();
-  }
-
-  void onMenuPress(MenuItemModel menu, int index) {
-    if (_selectedMenu == menu.title) {
-      Navigator.pop(context);
-      return;
-    }
+  void _handleNavigation(MenuItemModel menu, int? index) {
     setState(() => _selectedMenu = menu.title);
     HapticFeedback.lightImpact();
 
-    if (widget.onTabSelected != null) widget.onTabSelected!(index);
-
-    // Pequeño delay para cerrar el drawer y que se aprecie la animación del item
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
-    });
+    if (index != null && index >= 0 && index < 5) {
+      if (widget.onTabSelected != null) {
+        widget.onTabSelected!(index);
+      }
+    } else if (menu.title == "Ayuda y Soporte") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
+      );
+    }
+    // NOTA: Eliminamos el Future.delayed con el Navigator.pop
+    // porque el ClientDashboard ya se encarga de cerrar la animación 3D.
   }
 
   @override
@@ -103,25 +127,19 @@ class _SideMenuState extends State<SideMenu> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header con foto y nombre completo (Optimizado)
             _buildProfileHeader(context),
-
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
                     _buildMenuSection(
-                        title: "EXPLORAR", items: _exploreMenu, startIndex: 0),
-                    _buildMenuSection(
-                        title: "HISTORIAL",
-                        items: _historyMenu,
-                        startIndex: _exploreMenu.length),
+                        title: "EXPLORAR", items: _mainNavMenu, isTab: true),
+                    _buildSupportSection(),
                   ],
                 ),
               ),
             ),
-
             _buildDarkModeToggle(),
           ],
         ),
@@ -129,61 +147,40 @@ class _SideMenuState extends State<SideMenu> {
     );
   }
 
-  // ==========================================
-  // HEADER DE PERFIL (VERSIÓN FINAL PULIDA)
-  // ==========================================
   Widget _buildProfileHeader(BuildContext context) {
-    // Rendimiento Senior: Solo escuchamos cambios en fullName y suscripción
     final userData = context.select<AuthProvider, (String, String)>((auth) => (
           auth.user?.fullName ?? "Angel Castañeda",
           auth.user?.suscripcionTipo ?? "Free"
         ));
 
     return Padding(
-      // Padding derecho de 80px para dar aire al botón de cerrar "X" del dashboard
       padding: const EdgeInsets.fromLTRB(24, 20, 80, 10),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(1.5),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-            ),
-            child: const CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.white10,
-              backgroundImage: AssetImage(
-                  'assets/samples/ui/rive_app/images/avatars/avatar_1.jpg'),
-            ),
+          const CircleAvatar(
+            radius: 18,
+            backgroundImage: AssetImage(
+                'assets/samples/ui/rive_app/images/avatars/avatar_1.jpg'),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  userData.$1, // Angel Castañeda
+                  userData.$1,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontFamily: "Poppins",
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                  ),
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: "Poppins"),
                 ),
-                Text(
-                  "Cliente ${userData.$2}",
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                )
+                Text("Cliente ${userData.$2}",
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 11))
               ],
             ),
           ),
@@ -195,42 +192,49 @@ class _SideMenuState extends State<SideMenu> {
   Widget _buildMenuSection(
       {required String title,
       required List<MenuItemModel> items,
-      required int startIndex}) {
+      required bool isTab}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding:
-              const EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 8),
-          child: Text(
-            title,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.3),
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.1,
-            ),
-          ),
+          padding: const EdgeInsets.only(left: 24, top: 32, bottom: 8),
+          child: Text(title,
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.1)),
         ),
         ...items.asMap().entries.map((entry) {
-          final int index = entry.key + startIndex;
-          return Column(
-            children: [
-              Divider(
-                color: Colors.white.withValues(alpha: 0.05),
-                thickness: 1,
-                height: 1,
-                indent: 24,
-                endIndent: 24,
-              ),
-              MenuRow(
-                menu: entry.value,
-                selectedMenu: _selectedMenu,
-                onMenuPress: () => onMenuPress(entry.value, index),
-              ),
-            ],
+          return MenuRow(
+            menu: entry.value,
+            selectedMenu: _selectedMenu,
+            onMenuPress: () =>
+                _handleNavigation(entry.value, isTab ? entry.key : null),
           );
         }),
+      ],
+    );
+  }
+
+  Widget _buildSupportSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 24, top: 32, bottom: 8),
+          child: Text("SOPORTE",
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.1)),
+        ),
+        MenuRow(
+          menu: _helpItem,
+          selectedMenu: _selectedMenu,
+          onMenuPress: () => _handleNavigation(_helpItem, null),
+        ),
       ],
     );
   }
@@ -246,31 +250,18 @@ class _SideMenuState extends State<SideMenu> {
         top: false,
         child: Row(
           children: [
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: Opacity(
-                opacity: 0.6,
-                child: RiveAnimation.asset(
-                  RiveAssets.icons,
-                  artboard: _themeMenu[0].riveIcon.artboard,
-                  onInit: onThemeRiveIconInit,
-                ),
-              ),
-            ),
+            const Icon(Icons.dark_mode_outlined,
+                color: Colors.white60, size: 24),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text(
-                "Modo Oscuro",
-                style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600),
-              ),
-            ),
+                child: Text("Modo Oscuro",
+                    style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600))),
             CupertinoSwitch(
               value: _isDarkMode,
-              onChanged: onThemeToggle,
+              onChanged: (v) => setState(() => _isDarkMode = v),
               activeTrackColor: const Color(0xFF6792FF),
             ),
           ],
