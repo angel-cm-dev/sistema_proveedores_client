@@ -36,6 +36,9 @@ dependencies:
   # CRÍTICO para formateo de moneda (S/.) y fechas en Perú
   intl: ^0.19.0
   url_launcher: ^6.3.2
+  image_picker: ^1.2.1
+  qr_flutter: ^4.1.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

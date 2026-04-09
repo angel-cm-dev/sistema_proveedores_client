@@ -61,7 +61,7 @@ class _ExpandableProfileCardState extends State<ExpandableProfileCard> {
               ),
             ),
           ),
-          // Contenido expandible
+          // Contenido expandible (FIX: Usamos AnimatedSize para evitar deformación)
           _buildExpandedContent(),
         ],
       ),
@@ -96,31 +96,39 @@ class _ExpandableProfileCardState extends State<ExpandableProfileCard> {
         child: const Icon(Icons.expand_more, color: Colors.black26),
       );
 
-  Widget _buildExpandedContent() => AnimatedCrossFade(
-        firstChild: const SizedBox.shrink(),
-        secondChild: Column(
-          children: [
-            const Divider(height: 1, indent: 20, endIndent: 20),
-            ...widget.options.map((opt) => ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  title: Text(opt.title, style: const TextStyle(fontSize: 14)),
-                  trailing: const Icon(Icons.arrow_forward_ios,
-                      size: 12, color: Colors.black12),
-                  onTap: opt.onTap ?? () => _showMockAction(opt.title),
-                )),
-            const SizedBox(height: 8),
-          ],
-        ),
-        crossFadeState:
-            _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+  // FIX: AnimatedSize recorta el contenido fluidamente sin aplastarlo
+  Widget _buildExpandedContent() => AnimatedSize(
         duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: Alignment.topCenter,
+        child: _isExpanded
+            ? Column(
+                children: [
+                  const Divider(height: 1, indent: 20, endIndent: 20),
+                  ...widget.options.map((opt) => ListTile(
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 24),
+                        title: Text(opt.title,
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500)),
+                        trailing: const Icon(Icons.arrow_forward_ios,
+                            size: 14, color: Colors.black26),
+                        onTap: opt.onTap ?? () => _showMockAction(opt.title),
+                      )),
+                  const SizedBox(height: 8),
+                ],
+              )
+            : const SizedBox(
+                width: double.infinity,
+                height: 0), // Oculto sin perder su ancho
       );
 
   void _showMockAction(String title) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text("Accediendo a: $title"),
-          behavior: SnackBarBehavior.floating),
+        content: Text("Falta crear el archivo para: $title"),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 }
